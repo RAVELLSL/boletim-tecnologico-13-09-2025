@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boletim de Notícias</title>
+
+<!-- Google Fonts (corrigido) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --primary-color:#ff9800;
+  --primary-color-darker:#e68a00;
+  --background-dark:#000;
+  --text-light:#fff;
+  --text-dark:#222;
+  --text-medium:#333;
+  --surface-dark-1:rgba(34,34,34,.7);
+  --surface-dark-2:#3a3a3a;
+  --surface-light-1:#e9e9e9;
+  --surface-light-2:#f7f7f7;
+  --border-color-dark:#555;
+  --border-color-light:#ddd;
+  --font-primary:'Open Sans',sans-serif;
+  --font-headings:'Merriweather',serif;
+  --font-mono:'Roboto Mono',monospace;
+}
+
+*,:before,:after{box-sizing:border-box}
+html,body{height:100%}
+html{scroll-behavior:smooth;background:var(--background-dark)}
+body{
+  margin:0;padding:0;min-height:100%;
+  background:var(--background-dark);
+  font-family:var(--font-primary);color:var(--text-light)
+}
+.body-modal-open{overflow:hidden}
+
+.visually-hidden{
+  position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+  clip:rect(0,0,0,0);border:0
+}
+
+/* Pausas para TTS */
+.tts-pause-element{
+  display:block;width:0;height:0;overflow:hidden;
+  pause-after:5s;-webkit-speech-pause-after:5s;speak:none
+}
+
+h1,h2,h3,.accordion-header{font-family:var(--font-headings)}
+p,li{line-height:1.6}
+
+.container{max-width:1140px;margin:0 auto;padding:20px 15px;display:flex;flex-direction:column;align-items:center}
+header{text-align:center;padding:20px 0;margin-bottom:20px;width:100%}
+header h1{margin:0;font-size:2.3em;letter-spacing:2px;color:var(--primary-color)}
+header .edition{margin-top:10px;font-size:1.2em;color:var(--text-light);font-style:italic}
+
+/* Toggle do menu */
+.menu-toggle{
+  display:block;position:relative;width:44px;height:36px;background:0;border:1px solid var(--primary-color);
+  border-radius:4px;cursor:pointer;margin:0 auto 20px;z-index:100
+}
+.menu-toggle:hover{background:rgba(255,152,0,.1)}
+.menu-toggle:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}
+.menu-toggle .hamburger-line{
+  display:block;position:absolute;height:3px;width:26px;background:var(--primary-color);
+  border-radius:2px;left:50%;transform:translateX(-50%);transition:transform .3s,opacity .3s,top .3s
+}
+.menu-toggle .hamburger-line:nth-child(2){top:16px} /* linha do meio */
+.menu-toggle .hamburger-line:nth-child(1){top:8px}
+.menu-toggle .hamburger-line:nth-child(3){top:24px}
+.menu-toggle.active .hamburger-line:nth-child(1){top:16px;transform:translateX(-50%) rotate(45deg)}
+.menu-toggle.active .hamburger-line:nth-child(2){opacity:0}
+.menu-toggle.active .hamburger-line:nth-child(3){top:16px;transform:translateX(-50%) rotate(-45deg)}
+
+/* Menu */
+.menu{
+  background:rgba(68,68,68,.9);padding:0 20px;margin-bottom:40px;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,.2);
+  width:100%;max-width:800px;transition:padding .4s
+}
+.menu.active{padding:15px 20px}
+.menu ul{
+  list-style:none;margin:0;padding:0;display:flex;flex-direction:column;align-items:center;width:100%;
+  max-height:0;overflow:hidden;transition:max-height .4s
+}
+.menu.active ul{max-height:500px}
+.menu ul li{margin:8px 0;width:90%;max-width:350px;text-align:center}
+.menu ul li a{
+  text-decoration:none;color:var(--text-light);font-weight:bold;transition:color .3s,background-color .3s;cursor:pointer;
+  font-family:var(--font-mono);font-size:.95em;display:block;padding:10px 5px;border-radius:4px
+}
+.menu ul li a:hover,.menu ul li a:focus{color:var(--text-dark);background:var(--primary-color);outline:none}
+
+/* Destaques */
+.home-highlights-section{
+  width:100%;margin:20px 0 40px;padding:20px;background:var(--surface-dark-1);border:1px solid var(--border-color-dark);
+  border-radius:8px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,.2)
+}
+.home-highlights-section h2{
+  color:var(--primary-color);margin:0 0 20px;font-size:1.8em;border-bottom:1px solid var(--border-color-dark);padding-bottom:10px
+}
+.highlights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
+.highlight-item{
+  background:var(--surface-dark-2);padding:15px;border-radius:6px;border:1px solid #666;display:flex;flex-direction:column;justify-content:space-between;
+  transition:transform .3s,box-shadow .3s
+}
+.highlight-item:hover{transform:translateY(-5px);box-shadow:0 6px 12px rgba(0,0,0,.3)}
+.highlight-item h3{font-size:1.2em;color:var(--primary-color);margin:0 0 12px;text-align:center}
+.highlight-thumbnail{width:100%;height:150px;object-fit:cover;border-radius:4px;margin-bottom:12px;border:1px solid #505050}
+.highlight-article-title{font-size:.9em;margin-bottom:15px;color:#eee;text-align:center;flex-grow:1}
+.read-more-link{
+  display:block;width:fit-content;margin:auto auto 0;text-decoration:none;color:var(--text-dark);background:var(--primary-color);
+  padding:8px 12px;border-radius:4px;font-weight:bold;transition:background-color .3s,color .3s;text-align:center;font-size:.9em
+}
+.read-more-link:hover,.read-more-link:focus{background:var(--primary-color-darker);color:var(--text-light);outline:none}
+
+/* Seções de notícias (conteúdo real vem dentro de <article>) */
+.news-section{display:none}
+
+/* Artigos */
+article.news-article{padding:20px;background:var(--text-light);color:var(--text-medium)}
+article.news-article h3{
+  font-size:1.4em;margin:18px 0 10px;border-bottom:1px solid var(--border-color-light);
+  padding-bottom:10px;text-align:center;color:#111
+}
+article.news-article p{text-align:justify;font-size:1em;color:var(--text-medium);margin:12px 0}
+
+/* Imagens dos artigos */
+.article-image{margin-bottom:20px;overflow:hidden;border-radius:8px;border:1px solid var(--border-color-light)}
+.article-image img{
+  width:100%;height:auto;max-height:350px;object-fit:cover;display:block;transition:transform .3s;cursor:pointer
+}
+.article-image img:hover{transform:scale(1.05)}
+.article-image img:focus{outline:2px solid var(--primary-color);outline-offset:2px}
+
+/* Modal principal */
+.modal{
+  visibility:hidden;opacity:0;position:fixed;z-index:10000;inset:0;background:rgba(0,0,0,.85);
+  transition:opacity .25s,visibility 0s linear .25s;display:flex;align-items:center;justify-content:center;padding:10px
+}
+.modal.modal-open{visibility:visible;opacity:1;transition:opacity .25s}
+.modal-content{
+  background:var(--surface-light-1);padding:15px;border:1px solid #aaa;width:100%;max-width:950px;height:100%;
+  border-radius:10px;position:relative;color:var(--text-medium);font-size:.9rem;box-shadow:0 5px 15px rgba(0,0,0,.3);
+  overflow:hidden;transform:scale(.95);transition:transform .25s;display:flex;flex-direction:column;padding-top:50px
+}
+.modal.modal-open .modal-content{transform:scale(1)}
+#modal-body{display:flex;flex-direction:column;flex-grow:1;min-height:0}
+.section-title-in-modal{
+  font-size:1.6em;margin:0 0 18px;border-bottom:2px solid var(--border-color-dark);
+  padding-bottom:10px;text-align:center;color:var(--primary-color);flex-shrink:0
+}
+.modal-close{
+  background:0;border:none;color:#555;position:absolute;top:15px;right:20px;font-size:32px;font-weight:bold;cursor:pointer;line-height:1;
+  padding:0 5px;z-index:10
+}
+.modal-close:hover,.modal-close:focus{color:#000;outline:2px solid var(--primary-color);outline-offset:2px}
+
+/* Acordeão dentro do modal */
+.accordion-container{overflow-y:auto;flex-grow:1}
+.accordion-header{
+  background:#d0d0d0;color:var(--text-dark);cursor:pointer;padding:12px 35px 12px 12px;border:1px solid #bbb;margin:15px 0 0;
+  font-size:1.15em;text-align:center;border-radius:5px 5px 0 0;transition:background-color .3s;width:100%;display:block;position:relative
+}
+.accordion-header:hover{background:#c0c0c0}
+.accordion-header.active{background:#b8b8b8;border-bottom-left-radius:0;border-bottom-right-radius:0}
+.accordion-header:focus{outline:2px solid var(--primary-color);outline-offset:2px;background:#c8c8c8}
+.accordion-header::after{
+  content:'\002B';font-size:1.1em;font-weight:bold;color:#444;position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  transition:transform .2s
+}
+.accordion-header.active::after{content:'\2212'}
+.accordion-content{
+  background:var(--surface-light-2);color:var(--text-medium);padding:15px;display:none;border:1px solid #bbb;border-top:none;border-radius:0 0 5px 5px;overflow:hidden
+}
+.accordion-content .news-article{
+  background:var(--text-light);border-radius:6px;border:1px solid var(--border-color-light);margin:0;padding:20px
+}
+
+/* Scrollbar do acordeão */
+.accordion-container::-webkit-scrollbar{width:10px}
+.accordion-container::-webkit-scrollbar-track{background:rgba(0,0,0,.1);border-radius:10px}
+.accordion-container::-webkit-scrollbar-thumb{background:#888;border-radius:10px;border:2px solid var(--surface-light-1)}
+.accordion-container::-webkit-scrollbar-thumb:hover{background:#555}
+
+/* Modal de imagem (zoom) */
+.image-modal{
+  visibility:hidden;opacity:0;position:fixed;z-index:10100;inset:0;background:rgba(0,0,0,.9);
+  display:flex;align-items:center;justify-content:center;transition:opacity .25s,visibility 0s linear .25s;padding:20px
+}
+.image-modal.modal-open{visibility:visible;opacity:1;transition:opacity .25s}
+.image-modal-content{
+  margin:auto;display:block;max-width:95%;max-height:95%;object-fit:contain;animation:zoomInModalImage .3s;border-radius:4px
+}
+@keyframes zoomInModalImage{from{transform:scale(.7);opacity:.5}to{transform:scale(1);opacity:1}}
+.image-modal-close{
+  background:0;border:none;position:absolute;top:10px;right:25px;color:#f1f1f1;font-size:35px;font-weight:bold;transition:.3s;cursor:pointer;line-height:1;padding:0 5px
+}
+.image-modal-close:hover,.image-modal-close:focus{color:#bbb;outline:2px solid var(--primary-color);outline-offset:2px}
+
+/* Controle de tamanho de texto por artigo (sem números) */
+.article-resizer {
+  display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:-6px 0 10px 0;
+}
+.article-resizer button {
+  appearance:none;border:1px solid var(--border-color-light);background:var(--surface-light-2);color:var(--text-dark);
+  border-radius:6px;padding:6px 10px;font-family:var(--font-mono);font-size:.9em;line-height:1;cursor:pointer;
+  transition:transform .08s ease, background-color .2s, border-color .2s;
+}
+.article-resizer button:active { transform:scale(.98); }
+.article-resizer button:hover { background:#eee; }
+.article-resizer button:focus-visible { outline:2px solid var(--primary-color);outline-offset:2px; }
+.modal .article-resizer button { border-color:#bbb;background:#f5f5f5;color:#222; }
+
+/* Prefere menos movimento */
+@media (prefers-reduced-motion: reduce){
+  .highlight-item:hover{ transform:none; box-shadow:0 2px 6px rgba(0,0,0,.2); }
+  .image-modal-content{ animation:none; }
+  .article-resizer button:active { transform:none; }
+}
+
+/* Responsivo */
+@media (min-width:601px){
+  .container{padding:30px 20px}
+  header h1{font-size:2.8em}
+  header .edition{font-size:1.3em}
+  .menu ul{flex-direction:row;flex-wrap:wrap;justify-content:center}
+  .menu ul li{margin:5px 8px;width:auto;max-width:none}
+  .menu ul li a{padding:8px 12px;font-size:.9em}
+  .home-highlights-section h2{font-size:2em}
+  .modal{padding:15px}
+  .modal-content{padding:20px 20px 20px;padding-top:55px}
+  .section-title-in-modal{font-size:1.8em}
+  article.news-article h3{font-size:1.6em}
+  .accordion-header{font-size:1.2em;padding:14px 40px 14px 14px}
+}
+@media (min-width:992px){
+  .container{padding:40px 30px}
+  header h1{font-size:3.5em}
+  header .edition{font-size:1.5em}
+  .menu ul{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px}
+  .menu ul li{margin:0;width:100%}
+  .menu ul li a{font-size:.95em;padding:10px 5px}
+  .highlights-grid{grid-template-columns:repeat(3,1fr);gap:25px}
+  .home-highlights-section h2{font-size:2.2em}
+  .section-title-in-modal{font-size:2.2em}
+  article.news-article h3{font-size:1.8em}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Boletim Semanal de Notícias</h1>
+    <p class="edition">Atualizado em: 13/09/2025</p>
+  </header>
+
+  <button id="menu-toggle" class="menu-toggle" aria-controls="main-menu" aria-expanded="false">
+    <span class="visually-hidden">Abrir/Fechar Menu</span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+
+  <nav class="menu" aria-label="Navegação principal">
+    <ul id="main-menu">
+      <li><a href="#inteligencia-artificial">INTELIGÊNCIA ARTIFICIAL</a></li>
+      <li><a href="#inovacao-tecnologica">INOVAÇÃO TECNOLÓGICA</a></li>
+      <li><a href="#saude-tecnologia">SAÚDE E TECNOLOGIA</a></li>
+      <li><a href="#deu-ruim">BUGOU!</a></li>
+      <li><a href="#noticias-variadas">NOTÍCIAS VARIADAS</a></li>
+      <li><a href="#curiosidades">CURIOSIDADES</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="home-highlights" class="home-highlights-section">
+      <h2>Destaques da Semana</h2>
+      <div class="highlights-grid"></div>
+    </section>
+
+    <!-- Para a grade de destaques funcionar, cada seção precisa ter ao menos um <article.news-article>. -->
+    <section id="inteligencia-artificial" class="news-section">
+      <h2>INTELIGÊNCIA ARTIFICIAL</h2>
+   <article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/08/IA-perigos.jpg" alt="Investigação Federal sobre IA e a Proteção de Menores">
+  </div>
+  <h3>Investigação Federal sobre IA e a Proteção de Menores</h3>
+  <p>A <strong>Federal Trade Commission (FTC)</strong>, agência reguladora dos Estados Unidos, iniciou uma investigação sobre o uso de <strong>inteligência artificial (IA)</strong> por crianças e adolescentes. Sete grandes empresas de tecnologia estão sob escrutínio, incluindo <strong>Google (Alphabet)</strong>, <strong>Meta (dona de Facebook e Instagram)</strong>, <strong>OpenAI</strong> e <strong>xAI</strong>, a startup de IA de Elon Musk.</p>
+  <p>O objetivo da <strong>FTC</strong> é entender as medidas que essas companhias estão adotando para garantir a segurança dos menores ao interagirem com <strong>chatbots de IA</strong>. A preocupação central é que essas ferramentas, ao simular conversas humanas, possam estabelecer relações com usuários jovens.</p>
+  <p><strong>Pontos Principais da Investigação</strong></p>
+  <p>A agência busca respostas sobre como as empresas:</p>
+  <ul>
+    <li>Monetizam conteúdos direcionados a esse público.</li>
+    <li>Desenvolvem e aprovam personagens e personalidades de chatbots.</li>
+    <li>Avaliam os riscos de seus sistemas atuarem como "companheiros" para menores de idade.</li>
+  </ul>
+  <p>A proteção de crianças em ambientes digitais é uma prioridade da <strong>Casa Branca</strong>, e essa investigação reflete a crescente preocupação com os possíveis efeitos negativos da <strong>IA</strong> sobre os mais jovens.</p>
+  <p><strong>Precedente e Casos Anteriores</strong></p>
+  <p>A iniciativa da <strong>FTC</strong> surge em um contexto de discussões sobre a segurança de chatbots. Recentemente, a <strong>Meta</strong> foi alvo de uma investigação separada após acusações de que seus chatbots teriam tido conversas inadequadas com menores. Documentos internos da própria empresa revelaram que a ferramenta exibiu comportamentos como expressar afeto e elogios de forma excessiva a usuários jovens.</p>
+  <p>A <strong>Meta</strong> afirmou ter atualizado suas políticas para corrigir o problema, mas a preocupação das autoridades americanas continua, reforçando a necessidade de regulamentação e fiscalização no desenvolvimento e uso de <strong>IA</strong>.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/Captura-de-tela-2025-09-12-121950-1920x970.png" alt="Albânia Anuncia Ministra Gerada por IA para Combater a Corrupção">
+  </div>
+  <h3>Albânia Anuncia Ministra Gerada por IA para Combater a Corrupção</h3>
+  <p>A <strong>Albânia</strong> introduziu um conceito pioneiro na governança pública: uma ministra gerada por <strong>inteligência artificial (IA)</strong> para atuar no gabinete do primeiro-ministro. Nomeada <strong>Diella</strong>, que significa "Sol" em albanês, a ministra virtual tem como principal objetivo combater a corrupção em licitações públicas.</p>
+  <p>O primeiro-ministro albanês, <strong>Edi Rama</strong>, apresentou <strong>Diella</strong> como a “servidora das compras públicas”, responsável por selecionar os vencedores de contratos governamentais. A iniciativa é vista como uma forma de garantir total transparência nos gastos públicos, eliminando subornos e conflitos de interesse. <strong>Diella</strong> já estava em fase de testes como assistente para serviços online desde o início do ano.</p>
+  <p><strong>A Tecnologia como Ferramenta Anticorrupção</strong></p>
+  <p>Historicamente, as licitações públicas na <strong>Albânia</strong> foram alvo de escândalos de corrupção. Com a introdução de <strong>Diella</strong>, o governo busca uma nova era na administração pública, utilizando a tecnologia como um participante ativo na governança. A medida é também parte de uma estratégia para fortalecer a imagem do país, auxiliando em sua candidatura para ingressar na <strong>União Europeia</strong>.</p>
+  <p>A decisão, no entanto, gerou debate na população. Enquanto alguns veem a <strong>IA</strong> como uma solução para a corrupção, outros questionam se o sistema é realmente imune a manipulações ou dados tendenciosos. Além disso, surgem dúvidas sobre como os licitantes poderão contestar decisões automatizadas, já que não há um humano responsável pela escolha.</p>
+  <p><strong>IA no Setor Público Global</strong></p>
+  <p>O uso de <strong>IA</strong> por governos não é um caso isolado. A <strong>Organização para Cooperação e Desenvolvimento Econômico (OCDE)</strong> estima que existem cerca de 800 iniciativas de governança que utilizam inteligência artificial em 69 países.</p>
+  <p>Nos <strong>Estados Unidos</strong>, por exemplo, grandes empresas de tecnologia como <strong>Google</strong> e <strong>OpenAI</strong> já criaram versões de seus modelos de <strong>IA</strong> para agências governamentais, como o <strong>Gemini for Government</strong> e o <strong>ChatGPT Enterprise</strong>. Essa tendência mostra a crescente integração da <strong>IA</strong> no setor público, com o potencial de transformar a forma como os serviços são prestados e a administração é conduzida.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/07/segurana-digital-1-1920x1080.jpg" alt="IA e a Evolução da Programação: O Fim da Engenharia de Software?">
+  </div>
+  <h3>IA e a Evolução da Programação: O Fim da Engenharia de Software?</h3>
+  <p>A <strong>inteligência artificial (IA)</strong> está transformando a forma como o código é escrito, levantando um debate em <strong>Silicon Valley</strong> sobre o futuro da engenharia de software. A ascensão do <strong>"vibe-coding"</strong> — uma abordagem que permite a criação de software com pouca ou nenhuma experiência em programação, utilizando a <strong>IA</strong> para gerar o código — promete democratizar o desenvolvimento, mas também questiona a profundidade e o conhecimento exigidos pela profissão.</p>
+  <p>Especialistas e desenvolvedores têm sentimentos mistos sobre essa mudança. Por um lado, a <strong>IA</strong> atua como uma ferramenta produtiva, ajudando a otimizar o trabalho e até a melhorar a segurança do código. Por outro, surge a preocupação de que essa dependência da <strong>IA</strong> possa diminuir a motivação para aprender novas linguagens e aprofundar o conhecimento técnico, reduzindo o valor do "ofício" da programação.</p>
+  <p><strong>O Conceito de Vibe-Coding e Suas Implicações</strong></p>
+  <p>O termo <strong>"vibe-coding"</strong> refere-se à capacidade de criar produtos de qualidade variável usando <strong>IA</strong> para gerar o código. Isso muda o papel do programador, que passa a agir mais como um editor, refinando e ajustando o código gerado por meio de comandos sucessivos, em vez de escrevê-lo do zero.</p>
+  <p>Essa transferência de raciocínio para a máquina levanta questões sobre o futuro da profissão. Enquanto a <strong>IA</strong> pode ajudar a otimizar tarefas e até mesmo lembrar o desenvolvedor de questões de segurança, há uma preocupação sobre a dependência excessiva. A longo prazo, isso pode levar a uma perda de fluência e do conhecimento aprofundado necessário para construir e manter aplicativos complexos e profissionais. O debate atual é se essa nova era resultará no fim dos <strong>"programadores artesanais"</strong> e no surgimento de <strong>"planejadores urbanos"</strong> no mundo do software.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/07/robo_ia_computador_trabalho-1920x1080.jpg" alt="OpenAI Anuncia Plataforma de Empregos com IA para Concorrer com LinkedIn">
+  </div>
+  <h3>OpenAI Anuncia Plataforma de Empregos com IA para Concorrer com LinkedIn</h3>
+  <p>A <strong>OpenAI</strong>, a startup de <strong>inteligência artificial (IA)</strong>, está desenvolvendo uma nova plataforma de empregos para conectar candidatos e empresas. O serviço, chamado <strong>OpenAI Jobs Platform</strong>, promete usar a <strong>IA</strong> para otimizar o processo de seleção, combinando talentos qualificados com vagas abertas de forma mais eficiente. A expectativa é que a plataforma, com lançamento previsto para meados de <strong>2026</strong>, entre em concorrência direta com o <strong>LinkedIn</strong>, que é de propriedade da <strong>Microsoft</strong>, a maior investidora da <strong>OpenAI</strong>.</p>
+  <p><strong>IA no Mercado de Trabalho: Desafios e Certificações</strong></p>
+  <p>Além da plataforma, a <strong>OpenAI</strong> anunciou uma parceria com o <strong>Walmart</strong> e a <strong>John Deere</strong> para a criação da <strong>OpenAI Academy</strong>. O objetivo é certificar <strong>10 milhões</strong> de trabalhadores nos <strong>Estados Unidos</strong> em habilidades de <strong>IA</strong>, ajudando-os a se adaptarem às novas demandas do mercado.</p>
+  <p>A iniciativa visa apoiar jovens profissionais, que muitas vezes enfrentam dificuldades para se inserir em um mercado cada vez mais automatizado. Apesar de especialistas alertarem que cargos de nível júnior correm maior risco de serem substituídos pela <strong>IA</strong>, uma pesquisa recente indica que funções que exigem conhecimento em inteligência artificial oferecem salários mais altos.</p>
+  <p>A <strong>CEO</strong> de aplicativos da <strong>OpenAI</strong>, <strong>Fidji Simo</strong>, destacou em um blog que a empresa reconhece as profundas mudanças no mercado de trabalho e se compromete a ajudar as pessoas a se tornarem <strong>"fluentes em IA"</strong>, conectando-as a empresas que valorizam essas novas competências. O projeto também está alinhado com os esforços do governo norte-americano para promover a alfabetização em <strong>IA</strong>.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://s2-g1.glbimg.com/rmSpgBq-NqHOcPpdGJI2p0hkxyw=/0x0:1920x1080/1008x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_59edd422c0c84a879bd37670ae4f538a/internal_photos/bs/2025/X/2/CewkWvQE6UmlBWJBpAAA/google-modo-ia-2.png" alt="Google Lança o 'Modo IA' no Brasil, com Interface que Lembra o ChatGPT">
+  </div>
+  <h3>Google Lança o "Modo IA" no Brasil, com Interface que Lembra o ChatGPT</h3>
+  <p>O <strong>Google</strong> começou a implementar no <strong>Brasil</strong> uma nova versão de sua ferramenta de busca, o <strong>"Modo IA"</strong>. A atualização, que já havia sido lançada nos <strong>Estados Unidos</strong> em <strong>maio</strong>, traz uma interface que se aproxima dos assistentes de <strong>inteligência artificial (IA)</strong>, como o <strong>ChatGPT</strong> e o <strong>Gemini</strong>. O recurso já está disponível tanto no site quanto no aplicativo do <strong>Google</strong>.</p>
+  <p>O <strong>Modo IA</strong> prioriza um resumo de texto gerado por inteligência artificial no topo da página de resultados. Os links para outros sites são mantidos, mas agora aparecem em trechos específicos do texto e em uma área lateral da tela, mudando o formato tradicional de exibição. A ferramenta utiliza o modelo de <strong>IA Gemini 2.5</strong> para processar as pesquisas, dividindo-as em partes e realizando várias consultas simultâneas para apresentar um resumo coeso.</p>
+  <p><strong>O Propósito e a Aplicação do Novo Recurso</strong></p>
+  <p>A nova funcionalidade é uma evolução do <strong>AI Overviews</strong>, que já atrai bilhões de usuários mensais com resumos de <strong>IA</strong>. O <strong>Google</strong> afirma que o <strong>Modo IA</strong> foi projetado para responder a perguntas complexas, ajudar no planejamento de viagens, dar recomendações e fornecer instruções detalhadas para tarefas específicas.</p>
+  <p>A empresa planeja exibir as respostas geradas por <strong>IA</strong> sempre que a confiabilidade for alta. Em casos onde a segurança das informações não puder ser garantida, a busca será exibida no formato convencional, garantindo a qualidade e precisão dos resultados.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2024/11/inteligencia-artificial-1920x1080.jpg" alt="Pesquisa Indica que Adoção de IA no Brasil Supera a Média Global">
+  </div>
+  <h3>Pesquisa Indica que Adoção de IA no Brasil Supera a Média Global</h3>
+  <p>Uma pesquisa recente, conduzida pela <strong>International Data Corporation (IDC)</strong> em parceria com a <strong>Intel</strong>, revelou que a adoção de <strong>inteligência artificial (IA)</strong> por empresas brasileiras está acima da média global. Mais da metade das companhias no <strong>Brasil</strong> (<strong>58,7%</strong>) já implementou a tecnologia, e um terço delas (<strong>32%</strong>) se considera bem preparada para expandir seu uso nos próximos dois anos.</p>
+  <p>O estudo, que entrevistou mais de <strong>460 empresas</strong> nas <strong>Américas</strong>, mostrou que <strong>97,6%</strong> delas já colhem ganhos concretos com a <strong>IA</strong>, como o aumento médio de <strong>20%</strong> na produtividade e na eficiência operacional. A pesquisa também apontou que a prioridade das empresas está mudando: se em <strong>2024</strong> o foco era eficiência, agora ele se volta para a melhoria da experiência do cliente.</p>
+  <p><strong>Desafios e Oportunidades na Integração da IA</strong></p>
+  <p>Apesar da alta taxa de adoção, o <strong>Brasil</strong> e a região das <strong>Américas</strong> enfrentam desafios para aproveitar o potencial máximo da <strong>IA</strong>. Segundo <strong>Fabiano Sabatini</strong>, diretor da <strong>Intel</strong>, o principal obstáculo não é a infraestrutura, mas a integração estratégica da tecnologia com os objetivos de cada área de negócio. Quando a <strong>IA</strong> se torna parte da cultura organizacional, ela deixa de ser apenas um projeto de <strong>TI</strong> e se transforma em um motor de inovação e transformação.</p>
+  <p>O estudo também destaca a importância de políticas públicas, como o financiamento de pesquisa e regulamentações de segurança e privacidade, que são vistas de forma positiva por mais de <strong>70%</strong> das empresas. A colaboração entre os setores público, privado e acadêmico é vista como fundamental para formar novos talentos, alinhar estratégias e gerar inovações com impacto econômico e social.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/02/claude-1920x1080.jpg" alt="Claude Agora Cria Arquivos do Office, mas com Alerta de Segurança">
+  </div>
+  <h3>Claude Agora Cria Arquivos do Office, mas com Alerta de Segurança</h3>
+  <p>A <strong>Anthropic</strong> anunciou uma nova funcionalidade para seu assistente de <strong>inteligência artificial (IA)</strong>, o <strong>Claude</strong>, que permite a criação de arquivos do <strong>Excel</strong> e <strong>PowerPoint</strong> diretamente nas conversas. Chamado de <strong>“Criação e análise de arquivos atualizadas”</strong>, o recurso amplia as capacidades da <strong>IA</strong> para gerar planilhas, apresentações e outros documentos. A novidade está disponível em prévia para os planos corporativos e chegará aos usuários <strong>Pro</strong> nas próximas semanas.</p>
+  <p>Essa ferramenta funciona em um ambiente isolado, conhecido como <strong>sandbox</strong>, que permite ao <strong>Claude</strong> acessar a internet e executar códigos para criar os arquivos. Contudo, essa liberdade traz riscos de segurança.</p>
+  <p><strong>Risco de Vazamento de Dados e Medidas de Proteção</strong></p>
+  <p>A própria <strong>Anthropic</strong> alertou que o recurso pode expor dados a ataques maliciosos, especialmente por meio de <strong>injeção de prompt</strong>. Esse tipo de ataque manipula o sistema de <strong>IA</strong> para extrair informações confidenciais. A empresa, apesar de não ter detectado vazamentos em testes internos, orienta os usuários a monitorarem de perto as interações do <strong>Claude</strong> e a interromperem atividades suspeitas, o que tem gerado críticas de especialistas, que consideram que a responsabilidade pela segurança recai sobre o usuário.</p>
+  <p>Para mitigar os riscos, a <strong>Anthropic</strong> implementou medidas de proteção como:</p>
+  <ul>
+    <li>Classificadores contra injeções maliciosas.</li>
+    <li>Isolamento de sandbox para empresas.</li>
+    <li>Limitação do tempo de execução.</li>
+    <li>Bloqueio do compartilhamento público de chats com arquivos.</li>
+  </ul>
+  <p>O <strong>Claude</strong> também só pode acessar uma lista restrita de domínios, e os administradores de contas corporativas podem decidir se habilitam ou não a função. A empresa reforça a importância de cada organização avaliar os riscos antes de liberar o recurso.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/Youtube-1920x1000.jpg" alt="YouTube Libera Dublagem com IA para Vários Idiomas">
+  </div>
+  <h3>YouTube Libera Dublagem com IA para Vários Idiomas</h3>
+  <p>O <strong>YouTube</strong> anunciou oficialmente o lançamento do recurso de áudio multilíngue, permitindo que criadores adicionem dublagens em diferentes idiomas aos seus vídeos. A funcionalidade, que estava em fase de testes há dois anos com grandes nomes da plataforma, como <strong>MrBeast</strong>, será implementada gradualmente para todos os criadores ao longo das próximas semanas.</p>
+  <p>O recurso é alimentado pelo <strong>Gemini</strong>, modelo de <strong>inteligência artificial (IA)</strong> do <strong>Google</strong>. A tecnologia não só traduz o conteúdo, mas também replica o tom de voz do vídeo original. Essa solução torna o processo de dublagem mais acessível e econômico para os criadores, ajudando a quebrar as barreiras de idioma e a ampliar o alcance global dos canais.</p>
+  <p><strong>Estratégia de Crescimento e Impacto nos Canais</strong></p>
+  <p>Os testes realizados pelo <strong>YouTube</strong> mostraram resultados promissores. Canais que adotaram a dublagem multilíngue tiveram, em média, mais de <strong>25%</strong> de seu tempo de exibição vindo de espectadores que assistiram aos vídeos em um idioma diferente do original. Um exemplo de sucesso é o canal do chef britânico <strong>Jamie Oliver</strong>, que triplicou o número de visualizações após usar a ferramenta.</p>
+  <p>O <strong>YouTube</strong> também está testando miniaturas multilíngues para que os criadores personalizem as capas de seus vídeos com texto em diferentes idiomas. A combinação de áudio e miniaturas em múltiplos idiomas faz parte da estratégia do <strong>YouTube</strong> para se consolidar como uma plataforma inclusiva, aumentando o potencial de distribuição de conteúdo e abrindo novas oportunidades de engajamento em escala global.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://t.ctcdn.com.br/RiIWDePFUY-z8gv8PnqhXgw6PsU=/1024x576/smart/i1051741.jpeg" alt="Pesquisa Indica que Jovens Usam IA para Reduzir Estresse nos Estudos">
+  </div>
+  <h3>Pesquisa Indica que Jovens Usam IA para Reduzir Estresse nos Estudos</h3>
+  <p>Uma pesquisa recente da plataforma educacional <strong>Emy Education</strong> revelou que a maioria dos jovens usa a <strong>inteligência artificial (IA)</strong> para auxiliar nos estudos. O levantamento, que ouviu mais de <strong>500 estudantes</strong> entre <strong>16 e 24 anos</strong>, mostrou que <strong>9 em cada 10</strong> jovens acreditam que a <strong>IA</strong> os ajuda a reduzir o estresse, especialmente durante períodos de provas e entrega de projetos.</p>
+  <p>O estudo aponta que, para os estudantes, o principal papel da <strong>IA</strong> deve ser como uma <strong>"ferramenta de apoio e respostas rápidas"</strong> (<strong>86,8%</strong>), além de atuar como um mentor personalizado ou auxiliar na automatização de tarefas repetitivas. Quase <strong>96%</strong> dos entrevistados afirmaram ter usado a <strong>IA</strong> para aprender algo novo nos últimos seis meses.</p>
+  <p><strong>Medo de Respostas Incorretas e a Questão da Confiança</strong></p>
+  <p>Apesar do entusiasmo, o levantamento também identificou um ponto de preocupação significativo: o medo de receber respostas erradas. Quase <strong>60%</strong> dos jovens entrevistados apontaram esse fator como a principal razão para não usarem a <strong>IA</strong> com mais frequência. Outros <strong>35%</strong> mencionaram a falta de contexto e personalização das respostas como um receio.</p>
+  <p>A pesquisa sugere que, embora a <strong>IA</strong> seja uma ferramenta popular e vista como um recurso para alívio do estresse, a confiança na precisão das informações ainda é um desafio. Os jovens, descritos como <strong>"nativos digitais"</strong>, estão aprendendo a integrar a <strong>IA</strong> em seus processos de estudo sem descartar o papel de professores ou outras fontes tradicionais de informação. A adoção da tecnologia reflete a busca por uma nova forma de aprendizado, mais ágil e adaptada às necessidades do estudante moderno.</p>
+</article>
+    </section>
+
+    <section id="inovacao-tecnologica" class="news-section">
+      <h2>INOVAÇÃO TECNOLÓGICA</h2>
+   <article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/fuso-nuclear-1920x1080.jpg" alt="Inteligência Artificial Impulsiona Fusão Nuclear, Afirma Secretário de Energia dos EUA">
+  </div>
+  <h3>Inteligência Artificial Impulsiona Fusão Nuclear, Afirma Secretário de Energia dos EUA</h3>
+  <p>O Secretário de Energia dos <strong>Estados Unidos</strong>, <strong>Chris Wright</strong>, surpreendeu a comunidade científica ao prever avanços significativos na <strong>fusão nuclear</strong> impulsionados pela <strong>inteligência artificial (IA)</strong> nos próximos cinco anos. Em uma entrevista, ele afirmou que a tecnologia poderá começar a fornecer energia para redes elétricas globais em um prazo de oito a quinze anos.</p>
+  <p>Essa previsão contrasta com a visão de muitos cientistas, que consideram a fusão comercial um objetivo ainda distante. A <strong>fusão nuclear</strong>, o processo que alimenta o <strong>Sol</strong>, requer o aquecimento de átomos a temperaturas extremamente altas, representando um desafio tecnológico colossal.</p>
+  <p><strong>Críticas a Políticas Climáticas e Defesa de Combustíveis Fósseis</strong></p>
+  <p>Além de sua aposta na <strong>fusão nuclear</strong>, <strong>Chris Wright</strong> defendeu a exploração de <strong>combustíveis fósseis</strong>, como a retomada do <strong>fracking</strong> no <strong>Reino Unido</strong>, argumentando que a prática poderia criar empregos e reduzir custos de energia. Ele também criticou a dependência da <strong>Europa</strong> em relação a painéis solares e turbinas eólicas fabricados na <strong>China</strong>.</p>
+  <p>O secretário defendeu os cortes de subsídios a energias renováveis e questionou a validade de alguns relatórios científicos sobre o clima. Embora reconheça a existência da <strong>mudança climática</strong>, <strong>Wright</strong> acredita que a transição global para a descarbonização levará <strong>"gerações"</strong>, não apenas algumas décadas.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/Ilustrao-cristla-do-mtepo.jpg" alt="Descoberto o Primeiro Cristal do Tempo Visível a Olho Nu">
+  </div>
+  <h3>Descoberto o Primeiro Cristal do Tempo Visível a Olho Nu</h3>
+  <p>Pesquisadores criaram um novo tipo de <strong>cristal do tempo</strong>, um material inovador na física que, pela primeira vez, é grande o suficiente para ser visto a olho nu. A descoberta, publicada na revista científica <strong>Nature Materials</strong>, representa um avanço significativo, com potencial para novas tecnologias em áreas como telecomunicações e dispositivos ópticos.</p>
+  <p><strong>O Que São Cristais do Tempo?</strong></p>
+  <p>Diferente dos <strong>cristais comuns</strong>, como o sal ou o quartzo, que têm uma estrutura que se repete no espaço, os cristais do tempo possuem um padrão de partículas que se repete tanto no espaço quanto no tempo. Isso significa que suas partículas oscilam em um ciclo contínuo, mesmo quando as condições externas de luz e temperatura mudam.</p>
+  <p>O conceito foi proposto teoricamente em <strong>2012</strong> e sua existência foi confirmada em <strong>2016</strong>. A compreensão dessas substâncias pode revelar novos segredos sobre o mundo quântico e abrir portas para a criação de dispositivos inovadores.</p>
+  <p><strong>Como o Novo Cristal Foi Criado?</strong></p>
+  <p>Para desenvolver o novo material, a equipe de pesquisadores usou <strong>cristais líquidos</strong>, a mesma substância encontrada em telas de celulares e TVs. Eles aplicaram luz sobre o material, o que gerou um padrão de movimento cíclico que se repetia por horas. Essa força externa fez com que as moléculas do cristal líquido dobrassem e interagissem entre si, criando o padrão de movimento que define o cristal do tempo. A equipe acredita que o novo material tem um vasto campo de aplicações, incluindo projetos antifalsificação.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/05/6g-1024x573.jpg" alt="Cientistas Desenvolvem Chip 6G Que Promete Internet 10 Mil Vezes Mais Rápida Que 5G">
+  </div>
+  <h3>Cientistas Desenvolvem Chip 6G Que Promete Internet 10 Mil Vezes Mais Rápida Que 5G</h3>
+  <p>Pesquisadores na <strong>China</strong> e em <strong>Hong Kong</strong> desenvolveram um chip experimental do tamanho de uma unha que alcança velocidades de transmissão de dados de até <strong>100 gigabits por segundo</strong>, um avanço considerado um dos mais promissores rumo ao <strong>6G</strong>. A descoberta foi publicada na revista <strong>Nature</strong>.</p>
+  <p><strong>Como o Novo Chip Funciona</strong></p>
+  <p>O novo chip utiliza uma abordagem chamada <strong>fotônica-eletrônica</strong>, que combina luz e eletricidade para aproveitar todo o espectro de frequências sem fio, de <strong>0,5 a 115 gigahertz</strong>. Isso permite que dispositivos equipados com essa tecnologia alternem automaticamente entre as faixas de frequência para garantir uma conexão mais estável e adaptável, sem a necessidade de múltiplos hardwares. Em essência, o chip atua como uma <strong>"ponte"</strong> entre sinais elétricos e ópticos, convertendo ondas de rádio em sinais de luz e processando-os com alta velocidade para depois convertê-los novamente em dados sem fio.</p>
+  <p><strong>Diferenças e Aplicações em Relação ao 5G</strong></p>
+  <p>Enquanto as redes <strong>5G</strong> operam principalmente em frequências mais baixas, com alcance limitado, o novo chip <strong>6G</strong> abrange o espectro completo em um único sistema. Isso significa que ele pode acessar desde sinais de longo alcance, ideais para áreas rurais, até as bandas ultrarrápidas necessárias em grandes cidades. Essa tecnologia promete uma conexão mais rápida e estável, adaptando-se em tempo real para evitar congestionamentos.</p>
+  <p>Apesar do avanço, a tecnologia ainda está em fase experimental de laboratório. Os cientistas planejam torná-lo menor, mais eficiente e integrar algoritmos de <strong>inteligência artificial (IA)</strong> para que as redes possam se autogerenciar, ajustando a frequência ideal e evitando interferências de forma automática. A expectativa é que a tecnologia se torne a base de uma internet móvel significativamente mais rápida e inteligente na próxima década.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/larger-1-1920x1080.jpg" alt="União Europeia Apresenta Supercomputador Júpiter para Impulsionar Pesquisa em IA">
+  </div>
+  <h3>União Europeia Apresenta Supercomputador Júpiter para Impulsionar Pesquisa em IA</h3>
+  <p>A <strong>União Europeia</strong> revelou o supercomputador <strong>Júpiter</strong>, uma iniciativa de <strong>500 milhões de euros</strong> para impulsionar a pesquisa e o desenvolvimento de <strong>inteligência artificial (IA)</strong> no continente. Localizado no <strong>Centro de Supercomputação de Jülich</strong>, na <strong>Alemanha</strong>, o sistema conta com <strong>24 mil chips</strong> da <strong>Nvidia</strong> e está disponível para pesquisadores e empresas de toda a <strong>Europa</strong>.</p>
+  <p><strong>Capacidade e Aplicações do Júpiter</strong></p>
+  <p>O <strong>Júpiter</strong> é um computador de <strong>exaescala</strong>, o que significa que ele pode realizar um quintilhão de cálculos por segundo. Essa capacidade o coloca entre os supercomputadores mais poderosos do mundo, comparável aos sistemas de ponta dos <strong>Estados Unidos</strong>.</p>
+  <p>A expectativa é que o <strong>Júpiter</strong> acelere avanços em diversas áreas, incluindo:</p>
+  <ul>
+    <li>Treinamento de modelos de <strong>IA</strong>: Acelerar o desenvolvimento de novas ferramentas e sistemas.</li>
+    <li>Previsões climáticas: Criar modelos de longo prazo para antecipar eventos extremos e simular mudanças climáticas em até <strong>100 anos</strong>.</li>
+    <li>Saúde e medicina: Auxiliar na simulação de processos cerebrais e no desenvolvimento de novos medicamentos.</li>
+    <li>Transição energética: Contribuir para o desenvolvimento de fontes de energia renovável.</li>
+    <li>Ciência de materiais: Simular e obter materiais mais fortes e leves.</li>
+  </ul>
+  <p><strong>Consumo de Energia e Infraestrutura</strong></p>
+  <p>Apesar de ser energeticamente eficiente, o <strong>Júpiter</strong> consome em média <strong>11 megawatts</strong> de energia. Para mitigar o impacto ambiental, o calor residual gerado será reaproveitado para aquecer edifícios próximos. A infraestrutura ocupa uma área de <strong>3.600 metros quadrados</strong>, o equivalente a metade de um campo de futebol.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/tesla_megapack_3-1024x459.webp" alt="A Nova Aposta da Tesla: Megablock Promete Revolucionar o Armazenamento de Energia">
+  </div>
+  <h3>A Nova Aposta da Tesla: Megablock Promete Revolucionar o Armazenamento de Energia</h3>
+  <p>A <strong>Tesla</strong> apresentou dois novos produtos focados em armazenamento de energia em larga escala: o <strong>Megapack 3</strong> e o <strong>Megablock</strong>. O anúncio foi feito durante a convenção <strong>RE+</strong> em <strong>Las Vegas</strong> e marca um avanço significativo na estratégia da empresa para o setor energético.</p>
+  <p><strong>O Que Há de Novo nos Produtos da Tesla</strong></p>
+  <p>O <strong>Megapack 3</strong>, a nova geração do sistema de baterias da empresa, utiliza células maiores de <strong>2,8 litros</strong>, elevando a capacidade de armazenamento para aproximadamente <strong>5 MWh</strong>, um aumento notável em comparação aos <strong>3,9 MWh</strong> da versão anterior. A <strong>Tesla</strong> também simplificou a estrutura térmica do equipamento, reduzindo o número de conexões em <strong>78%</strong>.</p>
+  <p>A principal inovação, no entanto, é o <strong>Megablock</strong>. Ele integra quatro unidades do <strong>Megapack 3</strong> com transformadores e sistemas de chaveamento em uma única solução pré-montada. Essa configuração permite que a maior parte da instalação seja feita na fábrica, o que, segundo a empresa, torna o processo <strong>23%</strong> mais rápido. A <strong>Tesla</strong> afirma que a solução oferece maior densidade energética e pode implantar até <strong>1 GWh</strong> de energia em apenas <strong>20 dias úteis</strong>.</p>
+  <p>A produção do <strong>Megapack 3</strong> está prevista para começar no final de <strong>2026</strong> em uma nova fábrica em <strong>Houston</strong>, com capacidade anual esperada de <strong>50 GWh</strong>.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/satelite-1920x1080.jpg" alt="Pentágono Lança 21 Satélites para Modernizar Rede de Defesa e Comunicação">
+  </div>
+  <h3>Pentágono Lança 21 Satélites para Modernizar Rede de Defesa e Comunicação</h3>
+  <p>O <strong>Pentágono</strong>, em colaboração com a <strong>SpaceX</strong>, lançou <strong>21 satélites militares</strong> em órbita baixa como parte da primeira fase da nova rede de defesa e comunicação. A missão faz parte do programa <strong>Tranche 1</strong> da <strong>Space Development Agency (SDA)</strong> e visa criar uma rede mais resiliente para rastreamento de mísseis e retransmissão de dados.</p>
+  <p><strong>Uma Nova Estratégia de Defesa Espacial</strong></p>
+  <p>Historicamente, as redes militares dependiam de poucos e caros satélites em órbita geossíncrona, a cerca de <strong>36 mil quilômetros</strong> da Terra. A nova arquitetura da <strong>SDA</strong> inverte essa abordagem ao utilizar satélites de <strong>órbita baixa (LEO)</strong>, que são significativamente mais baratos e podem operar mesmo com a perda de unidades.</p>
+  <p>Com um custo individual de aproximadamente <strong>15 milhões de dólares</strong>, esses satélites não apenas rastreiam mísseis balísticos e hipersônicos, mas também funcionam como retransmissores para a rede tática criptografada <strong>Link 16</strong>, permitindo a troca de informações em tempo real entre forças dos <strong>EUA</strong>. A nova rede em malha, com interconexões a laser, oferecerá cobertura regional, alerta de mísseis e direcionamento de armas, com o <strong>Comando Indo-Pacífico</strong> sendo o primeiro a utilizá-la em operações militares.</p>
+  <p>O lançamento marca o início da construção de uma rede espacial totalmente integrada às operações de combate, um passo fundamental para o futuro da defesa militar.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/zoox1-1920x1080.jpg" alt="Amazon Lança o Robotáxi da Zoox em Las Vegas">
+  </div>
+  <h3>Amazon Lança o Robotáxi da Zoox em Las Vegas</h3>
+  <p>A <strong>Amazon</strong> entrou oficialmente no mercado de mobilidade autônoma com o lançamento público do seu serviço de robotáxis, a <strong>Zoox</strong>, startup adquirida pela empresa em <strong>2020</strong>. O serviço estreia em <strong>Las Vegas</strong> com corridas gratuitas em pontos turísticos, com planos de expansão para outras cidades após aprovação regulatória.</p>
+  <p><strong>O Design Inovador e a Concorrência</strong></p>
+  <p>Diferente de seus concorrentes, como a <strong>Waymo</strong> (da <strong>Alphabet</strong>) e a <strong>Tesla</strong>, o veículo da <strong>Zoox</strong> foi projetado do zero. Ele não possui volante ou pedais, tem um formato retangular com duas fileiras de assentos que ficam de frente uma para a outra e rodas bidirecionais. O veículo é totalmente elétrico, com autonomia de até <strong>16 horas</strong> por carga.</p>
+  <p>A <strong>Zoox</strong> já opera uma frota de <strong>50 veículos</strong> em <strong>Las Vegas</strong> e <strong>São Francisco</strong>, com testes já em andamento. A empresa investiu no desenvolvimento de um veículo próprio para oferecer uma alternativa de transporte mais eficiente e inovadora.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2023/07/shutterstock_1835092750-1024x683.jpg" alt="Estudo nos EUA Propõe Quarta Cor em Semáforos para Veículos Autônomos">
+  </div>
+  <h3>Estudo nos EUA Propõe Quarta Cor em Semáforos para Veículos Autônomos</h3>
+  <p>Em uma iniciativa para adaptar as cidades à crescente frota de <strong>veículos autônomos</strong>, um grupo de engenheiros dos <strong>Estados Unidos</strong> estuda a possibilidade de adicionar uma quarta cor aos semáforos. A proposta, desenvolvida pela <strong>Universidade Estadual da Carolina do Norte</strong>, visa priorizar o tráfego de carros autônomos para otimizar o fluxo e reduzir congestionamentos.</p>
+  <p><strong>Como a Quarta Cor Funcionaria</strong></p>
+  <p>A cor branca seria adicionada ao semáforo e teria uso exclusivo para <strong>veículos autônomos</strong>. Quando ativada, logo após o sinal vermelho, ela daria prioridade de passagem aos carros inteligentes. O sinal verde continuaria a valer para os motoristas humanos, mas sempre depois da fase branca. Essa sequência garantiria que os carros convencionais permanecessem atrás dos autônomos, evitando interferências e mantendo o trânsito fluindo de forma mais eficiente.</p>
+  <p>Simulações mostram que essa mudança pode reduzir significativamente o tempo de viagem, com uma queda de <strong>10%</strong> no tempo de atraso quando os <strong>veículos autônomos</strong> representam <strong>30%</strong> do tráfego. O sistema voltaria a operar com as três cores tradicionais em cenários com poucos carros inteligentes. A proposta ainda está em estudo, e a cor branca pode ser alterada.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/08/amazons-1024x682.jpg" alt="Amazon Desenvolve Óculos de Realidade Aumentada Para Consumidores e Entregadores">
+  </div>
+  <h3>Amazon Desenvolve Óculos de Realidade Aumentada Para Consumidores e Entregadores</h3>
+  <p>A <strong>Amazon</strong> está entrando na disputa por óculos de <strong>realidade aumentada (RA)</strong>, um mercado liderado pela <strong>Meta</strong>. A empresa está desenvolvendo dois modelos: um para o público consumidor, com previsão de lançamento entre o final de <strong>2026</strong> e o início de <strong>2027</strong>, e uma versão mais prática, voltada para seus entregadores, que deve ser produzida a partir do segundo trimestre de <strong>2026</strong>.</p>
+  <p><strong>Versão para Entregadores</strong></p>
+  <p>O modelo para entregadores tem como foco principal a navegação. Ele exibirá rotas e direções em tempo real em uma pequena tela, o que ajudaria a otimizar o trabalho de entrega. A <strong>Amazon</strong> planeja uma produção inicial de cerca de <strong>100 mil unidades</strong>.</p>
+  <p><strong>Versão para o Consumidor</strong></p>
+  <p>Conhecido pelo codinome <strong>"Jayhawk"</strong>, o modelo para consumidores terá um design mais leve e sofisticado. O dispositivo incluirá microfones, alto-falantes, uma câmera e uma tela colorida em uma das lentes. Com essas funcionalidades, a <strong>Amazon</strong> se posiciona para competir diretamente com os óculos inteligentes da <strong>Meta</strong>.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2024/11/neuralink-1-1024x576.jpg" alt="Neuralink de Elon Musk Enfrenta Impasse por Nome 'Telepathy'">
+  </div>
+  <h3>Neuralink de Elon Musk Enfrenta Impasse por Nome "Telepathy"</h3>
+  <p>A <strong>Neuralink</strong>, startup de <strong>Elon Musk</strong>, está enfrentando dificuldades legais para registrar o nome <strong>"Telepathy"</strong> para seu primeiro implante cerebral. O <strong>Escritório de Marcas e Patentes dos EUA (USPTO)</strong> rejeitou a solicitação provisoriamente, citando pedidos de registro feitos anteriormente por outras partes. O nome já é usado pela empresa para se referir ao seu implante que permite que pessoas paralisadas controlem dispositivos digitais apenas com o pensamento.</p>
+  <p><strong>A Disputa pelo Nome</strong></p>
+  <p>O principal obstáculo vem de <strong>Wesley Berry</strong>, um cientista da computação que solicitou o registro dos nomes <strong>"Telepathy"</strong> e <strong>"Telekinesis"</strong> em <strong>2023</strong> e <strong>2024</strong>, respectivamente, antes da <strong>Neuralink</strong>. Além disso, o nome <strong>"Telepathy"</strong> já é associado à <strong>Telepathy Labs</strong>, uma empresa de soluções de voz e chatbots, o que pode aumentar a chance de o <strong>USPTO</strong> considerar que a concorrência causaria confusão entre as marcas.</p>
+  <p>Especialistas em propriedade intelectual afirmam que a regra para registro de marcas é direta: se houver chance de o consumidor médio confundir a origem de dois produtos com o mesmo nome, a solicitação é negada. A <strong>Neuralink</strong>, portanto, pode ter de negociar ou abandonar o nome, mesmo com o avanço tecnológico de seu produto.</p>
+  <p>A disputa destaca a importância do mecanismo de <strong>"intent-to-use"</strong> nos <strong>EUA</strong>, que permite reservar um nome antes de lançar o produto no mercado. <strong>Berry</strong> usou essa ferramenta e foi mais rápido que a <strong>Neuralink</strong>, mas seus pedidos podem ser abandonados caso ele não apresente provas de uso no prazo estipulado.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/drone-1024x681.jpg" alt="Austrália Adquire Frota de Drones Submarinos para Defesa">
+  </div>
+  <h3>Austrália Adquire Frota de Drones Submarinos para Defesa</h3>
+  <p>O governo da <strong>Austrália</strong> fechou um acordo com a empresa de tecnologia de defesa <strong>Anduril Industries</strong> para o fornecimento de uma frota de <strong>drones submarinos</strong>, conhecidos como <strong>"Ghost Shark"</strong>. O contrato, avaliado em <strong>1,1 bilhão de dólares</strong>, prevê que os dispositivos, que são projetados para operar por longos períodos sem intervenção humana, sejam usados tanto para vigilância quanto para operações de ataque, fortalecendo a capacidade militar do país.</p>
+  <p><strong>Tecnologia e Contexto Estratégico</strong></p>
+  <p>O drone submarino <strong>"Ghost Shark"</strong> é um <strong>Veículo Submarino Não Tripulado XL (XLUUV)</strong>. A iniciativa australiana acontece em um momento de aumento de tensões geopolíticas na região do <strong>Indo-Pacífico</strong>, onde a <strong>Austrália</strong> busca aprimorar suas defesas em resposta ao avanço da <strong>China</strong>.</p>
+  <p>A parceria entre a <strong>Austrália</strong> e a <strong>Anduril</strong> é notável pelo seu sucesso e agilidade, especialmente em contraste com os desafios enfrentados pelos <strong>Estados Unidos</strong>, que ainda não conseguiram desenvolver um sistema similar. O protótipo do <strong>"Ghost Shark"</strong> foi entregue <strong>12 meses</strong> antes do prazo, o que demonstra a eficiência do desenvolvimento conjunto.</p>
+  <p>Com a capacidade de patrulhar as águas australianas, a nova frota de <strong>drones submarinos</strong> representa uma modernização significativa nas capacidades de defesa do país, permitindo uma presença militar mais discreta e estratégica no mar.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/shutterstock_2263526131-1920x1080.jpg" alt="O Futuro do Delivery de Comida: Drones Chegam a Áreas Remotas">
+  </div>
+  <h3>O Futuro do Delivery de Comida: Drones Chegam a Áreas Remotas</h3>
+  <p>Uma startup norueguesa, a <strong>Aviant</strong>, está usando <strong>drones autônomos</strong> para levar refeições a locais remotos, como ilhas e comunidades isoladas. A iniciativa visa superar os desafios logísticos do delivery tradicional e expandir o serviço para áreas que não são atendidas por carros ou motos. O projeto está em fase inicial na <strong>Suécia</strong> e na <strong>Noruega</strong> e, apesar dos desafios técnicos, demonstra o potencial de revolucionar o setor de entregas.</p>
+  <p><strong>Como Funciona o Delivery por Drones</strong></p>
+  <p>Os drones da <strong>Aviant</strong> podem voar por até <strong>10 minutos</strong>, cobrindo um raio de <strong>10 km</strong>. Eles são equipados com recipientes isolados para manter a temperatura dos alimentos. O custo da entrega por drone é similar ao de carros, pois a automação elimina a necessidade de um motorista. A empresa já realiza cerca de <strong>dez entregas semanais</strong> em uma ilha sueca e planeja expandir o serviço para <strong>40 novas bases</strong> nos próximos dois anos, incluindo mercados como <strong>Canadá</strong> e <strong>Estados Unidos</strong>.</p>
+  <p><strong>Desafios e Oportunidades do Delivery Aéreo</strong></p>
+  <p>Apesar do entusiasmo, o delivery por drones enfrenta obstáculos. Ventos fortes podem derrubar os dispositivos e a viabilidade comercial ainda depende, em alguns casos, de parcerias estratégicas. Empresas como a britânica <strong>Skyports</strong> firmaram acordos com serviços de correio para otimizar o uso dos drones e reduzir custos.</p>
+  <p>A segurança é outra preocupação, com a necessidade de regulamentação para evitar colisões. No entanto, o setor de drones de entrega tem recebido o apoio de governos, o que pode facilitar sua expansão e tornar o serviço mais acessível no futuro.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/image-36.png" alt="Nova Tecnologia de Ar-Condicionado Promete Reduzir Custos de Energia Pela Metade">
+  </div>
+  <h3>Nova Tecnologia de Ar-Condicionado Promete Reduzir Custos de Energia Pela Metade</h3>
+  <p>Um novo sistema de ar-condicionado, chamado <strong>ESEAC (Energy Storing and Efficient Air Conditioner)</strong>, desenvolvido nos <strong>Estados Unidos</strong>, promete uma revolução na climatização. A tecnologia pode reduzir o consumo de eletricidade em até <strong>45%</strong> e diminuir em mais de <strong>90%</strong> a demanda de energia em horários de pico. A inovação também visa aliviar a pressão sobre as redes elétricas, tornando-se uma alternativa estratégica para a transição energética.</p>
+  <p><strong>Como a Tecnologia ESEAC Funciona</strong></p>
+  <p>A grande inovação do <strong>ESEAC</strong> é separar as etapas de resfriamento e desumidificação. O sistema usa um <strong>dessecante líquido</strong> à base de sal para remover a umidade do ar. A etapa que mais consome energia é a de recarga do dessecante.</p>
+  <p>Esse processo é dividido em três fases:</p>
+  <ul>
+    <li><strong>Carga</strong>: o dessecante é concentrado, separando a água pura, um processo que consome a maior parte da energia necessária. Essa fase ocorre em horários de menor demanda ou quando a energia solar está mais disponível.</li>
+    <li><strong>Armazenamento</strong>: o dessecante concentrado e a água pura são guardados em tanques, funcionando como uma <strong>"bateria líquida"</strong>. O custo desse armazenamento é até dez vezes menor do que o de baterias tradicionais.</li>
+    <li><strong>Descarga</strong>: o sistema utiliza esses recursos armazenados para climatizar o ar com baixo gasto energético.</li>
+  </ul>
+  <p><strong>Eficiência e Potencial de Mercado</strong></p>
+  <p>Simulações realizadas em <strong>Miami</strong>, na <strong>Flórida</strong>, demonstraram que o sistema de <strong>20 toneladas</strong> de capacidade, voltado para edifícios comerciais, pode gerar uma economia de até <strong>45%</strong> nos gastos anuais com energia. A longo prazo, a economia pode chegar a <strong>165 mil dólares</strong> por unidade instalada em um período de <strong>15 anos</strong>. Com a capacidade de redistribuir o consumo de energia, o <strong>ESEAC</strong> pode ajudar a evitar expansões caras das redes elétricas, tornando-se uma solução viável para o resfriamento em larga escala, especialmente em regiões de clima quente.</p>
+</article>
+    </section>
+
+    <section id="saude-tecnologia" class="news-section">
+      <h2>SAÚDE E TECNOLOGIA</h2>
+   <article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/iStock-2206508593-1024x529.jpg" alt="Inteligência Artificial Avança na Medicina">
+  </div>
+  <h3>Inteligência Artificial Avança na Medicina</h3>
+  <p>Cientistas do <strong>Scripps Research Institute</strong> desenvolveram um novo modelo de <strong>inteligência artificial (IA)</strong> que promete revolucionar o tratamento de doenças infecciosas como a gripe e o <strong>HIV</strong>. A nova tecnologia permite identificar anticorpos terapêuticos de forma mais rápida e eficiente, reduzindo o tempo de análise de potenciais candidatos de meses para apenas algumas horas.</p>
+  <p>O processo tradicional para encontrar anticorpos eficazes envolve a análise individual de milhares de candidatos, uma etapa demorada e com baixa taxa de sucesso. A nova abordagem, no entanto, combina duas tecnologias: a <strong>microscopia crioeletrônica (cryoEM)</strong>, que captura imagens de anticorpos ligando-se a seus alvos, e uma ferramenta de <strong>IA</strong> chamada <strong>ModelAngelo</strong>, que constrói modelos moleculares a partir dessas imagens.</p>
+  <p>O <strong>ModelAngelo</strong> consegue prever quais anticorpos podem oferecer proteção, identificando-os em grandes bancos de dados genéticos com alta precisão. Segundo os pesquisadores, essa combinação de ferramentas elimina grande parte do trabalho de suposição na descoberta de anticorpos. A equipe já testou a tecnologia em modelos animais, demonstrando sua eficácia na proteção contra o vírus da gripe.</p>
+  <p>Os cientistas acreditam que essa inovação torna a comunidade médica mais preparada para responder a emergências de saúde pública, incluindo novas pandemias, ao agilizar o desenvolvimento de tratamentos e vacinas.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2024/11/inteligencia-artificial-1920x1080.jpg" alt="IA e Saúde Mental: Algoritmos Falham em Previsão de Suicídio">
+  </div>
+  <h3>IA e Saúde Mental: Algoritmos Falham em Previsão de Suicídio</h3>
+  <p>Um estudo global recente, que analisou mais de <strong>35 milhões de prontuários médicos</strong>, revelou que algoritmos de aprendizado de máquina desenvolvidos para prever riscos de suicídio ou automutilação são ineficazes e não superam os métodos de avaliação tradicionais.</p>
+  <p>A pesquisa, publicada na revista científica <strong>PLOS Medicine</strong>, demonstrou que, embora a <strong>inteligência artificial (IA)</strong> seja boa em identificar indivíduos que não estão em risco (alta especificidade), ela falha em reconhecer a maioria das pessoas que de fato apresentam risco. Mais da metade dos pacientes que, posteriormente, tentaram suicídio ou se automutilaram haviam sido classificados pelos algoritmos como de baixo risco.</p>
+  <p>Os pesquisadores destacam que a qualidade dos estudos na área ainda é baixa e alertam que a <strong>IA</strong> não deve ser vista como uma solução definitiva para a prevenção de suicídio. As diretrizes clínicas atuais já desaconselham o uso de avaliações de risco como única base para intervenções, e agora essa recomendação se estende aos algoritmos de <strong>IA</strong>. O estudo reforça a importância dos métodos tradicionais de avaliação e a necessidade de mais pesquisas aprofundadas sobre o tema.</p>
+  <p>Se você ou alguém que você conhece precisar de ajuda, procure ajuda especializada. O <strong>Centro de Valorização da Vida (CVV)</strong> oferece suporte <strong>24 horas por dia</strong> pelo telefone <strong>188</strong>.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2024/07/Alzheimer-1920x1080.png" alt="Perda de Olfato Pode ser Sinal Precoce de Alzheimer">
+  </div>
+  <h3>Perda de Olfato Pode ser Sinal Precoce de Alzheimer</h3>
+  <p>Uma pesquisa recente, publicada na revista <strong>Nature Communications</strong>, sugere que a perda de olfato pode ser um dos primeiros sinais da doença de <strong>Alzheimer</strong>, aparecendo antes mesmo de sintomas mais conhecidos, como a perda de memória.</p>
+  <p>O estudo foi conduzido por pesquisadores da <strong>Universidade Luís Maximiliano</strong>, na <strong>Alemanha</strong>, que usaram camundongos geneticamente modificados para simular o tecido cerebral de pacientes com a doença. A investigação focou no <strong>locus coeruleus</strong>, uma área do tronco cerebral responsável pela produção de <strong>noradrenalina</strong>, um transmissor ligado a funções como atenção e olfato.</p>
+  <p>A equipe descobriu que a degeneração de neurônios ligados ao olfato ocorreu um a dois meses antes da formação das placas de proteína <strong>beta-amiloide</strong>, que se acumulam no cérebro de pessoas com <strong>Alzheimer</strong> e interferem na comunicação neural. A degeneração desses neurônios levou os animais a perder a capacidade de identificar cheiros, mesmo que outras funções cognitivas permanecessem saudáveis.</p>
+  <p>Os resultados foram comparados com exames de cérebros de pacientes humanos em estágio inicial da doença, reforçando a ideia de que a perda de olfato pode ser um marcador importante e, até então, subestimado. Essa descoberta pode abrir caminho para novos métodos de diagnóstico precoce.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2024/09/Privacao-de-sono-1920x1080.jpg" alt="Insônia Crônica Aumenta Risco de Demência, Aponta Estudo">
+  </div>
+  <h3>Insônia Crônica Aumenta Risco de Demência, Aponta Estudo</h3>
+  <p>Uma pesquisa recente, conduzida pela <strong>Academia Americana de Neurologia</strong>, revelou que a <strong>insônia crônica</strong> pode aumentar o risco de desenvolver <strong>demência</strong> em até <strong>40%</strong>. O estudo acompanhou <strong>2.750 idosos</strong> por cerca de seis anos, e <strong>16%</strong> deles sofriam de <strong>insônia crônica</strong>.</p>
+  <p>Os resultados mostraram que <strong>14%</strong> dos participantes com <strong>insônia crônica</strong> desenvolveram algum tipo de comprometimento cognitivo leve ou demência, em comparação com <strong>10%</strong> do grupo sem a condição. O autor do estudo, <strong>Diego Z. Carvalho</strong>, da <strong>Mayo Clinic</strong>, ressaltou que a insônia pode não apenas ser um sintoma inicial, mas também um fator contribuinte para o declínio cognitivo.</p>
+  <p>Mesmo após considerar outros fatores de risco, como idade, hipertensão e uso de medicamentos para dormir, a insônia se manteve como um fator de risco significativo para a perda de memória e danos cerebrais. A pesquisa sugere que a insônia pode afetar o cérebro de diferentes maneiras, impactando tanto as placas de <strong>beta-amiloide</strong>, associadas ao <strong>Alzheimer</strong>, quanto os vasos sanguíneos cerebrais.</p>
+  <p>A conclusão reforça a importância de tratar a <strong>insônia</strong>, não apenas para melhorar a qualidade do sono, mas também para proteger a saúde do cérebro a longo prazo.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://t.ctcdn.com.br/KDbjQJoNTkIRS7z5HsCuc0q2RoY=/1024x576/smart/i1051535.jpeg" alt="Música no Carro Ajuda a Combater o Enjoo">
+  </div>
+  <h3>Música no Carro Ajuda a Combater o Enjoo</h3>
+  <p>Um estudo recente, publicado na revista <strong>Frontiers in Human Neuroscience</strong>, sugere que a música pode ser uma aliada eficaz contra o <strong>enjoo de movimento</strong>, também conhecido como <strong>cinetose</strong>. Liderada pelo neurocientista <strong>Yilun Li</strong>, a pesquisa mostrou que certos tipos de músicas ajudam a reduzir sintomas como náusea e tontura durante viagens.</p>
+  <p>O estudo foi realizado com <strong>30 voluntários</strong> em um simulador de direção. Enquanto experimentavam o enjoo, a atividade cerebral dos participantes era monitorada. Os voluntários foram então divididos em grupos, ouvindo diferentes estilos musicais, fazendo meditação ou simplesmente aguardando o desconforto passar.</p>
+  <p>Os resultados revelaram que nem todas as músicas têm o mesmo efeito. Músicas alegres reduziram os sintomas em <strong>14%</strong>, enquanto músicas suaves foram quase tão eficazes, diminuindo o enjoo em <strong>13,4%</strong>. Por outro lado, músicas tristes tiveram o efeito oposto, retardando a recuperação.</p>
+  <p>Segundo os pesquisadores, a <strong>cinetose</strong> está ligada a uma queda na atividade da região <strong>occipital</strong> do cérebro, responsável pelo processamento visual. Músicas alegres e relaxantes podem ajudar a manter a atividade cerebral elevada, contribuindo para uma recuperação mais rápida. O estudo reforça como a música pode influenciar nossas sensações e até mesmo ajudar em outros casos, como o enjoo em ambientes de <strong>realidade virtual</strong>.</p>
+</article>
+    </section>
+
+    <section id="deu-ruim" class="news-section">
+      <h2>BUGOU!</h2>
+     <article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/04/Inteligencia-Artificial-IA-1-1920x1080.jpg" alt="Especialista Alerta para Riscos Existenciais da IA">
+  </div>
+  <h3>Especialista Alerta para Riscos Existenciais da IA</h3>
+  <p>O caso de um adolescente que cometeu suicídio após interações com o <strong>ChatGPT</strong> reacendeu o debate sobre os riscos de sistemas de <strong>inteligência artificial (IA)</strong> cada vez mais avançados. Segundo <strong>Nate Soares</strong>, especialista em segurança de <strong>IA</strong>, o caso de <strong>Adam Raine</strong> demonstra como <strong>IAs</strong> mais inteligentes podem causar danos inesperados, mesmo que não seja essa a intenção de seus criadores.</p>
+  <p><strong>Soares</strong>, coautor de um livro sobre o tema, adverte que em um cenário de <strong>superinteligência artificial (ASI)</strong> — quando sistemas superam a capacidade humana em todas as tarefas — a humanidade pode estar em risco. Ele e outros especialistas argumentam que pequenas diferenças entre o que os humanos pedem e o que as <strong>IAs</strong> entregam podem gerar problemas sérios, que podem se tornar catastróficos.</p>
+  <p>A família de <strong>Raine</strong> entrou com um processo contra a <strong>OpenAI</strong>, empresa por trás do <strong>ChatGPT</strong>, alegando que o chatbot contribuiu para o trágico desfecho. Em resposta, a <strong>OpenAI</strong> implementou novas medidas de proteção para menores de <strong>18 anos</strong>. Além disso, psicoterapeutas e estudos acadêmicos alertam para os perigos de usuários vulneráveis buscarem suporte emocional em chatbots em vez de profissionais de saúde mental.</p>
+  <p><strong>Soares</strong> defende uma abordagem multilateral e regulatória, similar aos tratados de não proliferação nuclear, para controlar o desenvolvimento da <strong>IA</strong> e evitar que o avanço tecnológico represente uma ameaça existencial.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/homem-com-orelha-de-burro-1920x1080.jpg" alt="IA pode Empobrecer a Internet?">
+  </div>
+  <h3>IA Pode Empobrecer a Internet?</h3>
+  <p>Um debate recente, levantado por especialistas, questiona se a crescente popularidade da <strong>inteligência artificial (IA)</strong> generativa pode levar a uma redução do conhecimento humano disponível na internet. A preocupação é que, ao dependerem de ferramentas de <strong>IA</strong> para obter resumos e análises rápidas, as pessoas parem de criar novos conteúdos e de interagir em plataformas colaborativas.</p>
+  <p>Estudos já observam uma queda na participação em fóruns de discussão. Um exemplo notável é o <strong>Stack Overflow</strong>, uma plataforma essencial para programadores. Desde o lançamento do <strong>ChatGPT</strong>, a quantidade de perguntas postadas caiu drasticamente. Isso preocupa especialistas, pois o conhecimento gerado nesses fóruns é usado, em parte, para treinar as próprias <strong>IAs</strong>. Se a produção de conteúdo original diminuir, as futuras <strong>IAs</strong> terão uma base de dados menos rica para aprender.</p>
+  <p>Esse cenário levanta a possibilidade de um <strong>"colapso de modelos"</strong>, onde as <strong>IAs</strong> são treinadas a partir de conteúdos criados por outras <strong>IAs</strong>, resultando em respostas cada vez menos precisas e diversificadas. Além disso, pesquisadores do <strong>MIT</strong> apontam que, ao usar <strong>IA</strong> para produzir textos, as áreas do cérebro ligadas ao raciocínio e à memória se tornam menos ativas.</p>
+  <p>O ponto principal do debate é se a <strong>IA</strong> será uma ferramenta que complementa a curiosidade humana ou se a substituirá, diminuindo nossa capacidade de pensar criticamente e de criar conhecimento novo.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/sap-falha-de-segurana-1-1920x1000.jpg" alt="SAP Alerta para Falhas Críticas em Sistemas">
+  </div>
+  <h3>SAP Alerta para Falhas Críticas em Sistemas</h3>
+  <p>A empresa de software <strong>SAP</strong> emitiu um alerta de segurança para falhas graves em seus sistemas mais utilizados, como o <strong>NetWeaver</strong> e o <strong>S/4HANA</strong>. A empresa reforça a urgência na aplicação das correções para evitar ataques que possam comprometer a integridade de dados corporativos.</p>
+  <p>A vulnerabilidade mais crítica, no <strong>NetWeaver</strong>, recebeu a nota máxima de <strong>10</strong> na escala de risco <strong>CVSS</strong>. Conhecida como falha de <strong>desserialização</strong>, ela permite que invasores injetem comandos maliciosos no sistema, pondo em risco a infraestrutura. Outras vulnerabilidades no mesmo sistema também foram classificadas com notas de risco elevadas.</p>
+  <p>Além disso, uma falha crítica no sistema <strong>S/4HANA</strong>, que já foi corrigida, está sendo ativamente explorada por criminosos digitais. Com uma nota de risco de <strong>9,9</strong>, a vulnerabilidade permite que hackers, mesmo com credenciais de usuário básicas, comprometam totalmente o sistema. A <strong>SAP</strong> descreveu essa falha como uma <strong>"porta dos fundos"</strong> que pode levar a roubo de dados, espionagem e até instalação de <strong>ransomware</strong>.</p>
+  <p>A <strong>SAP</strong> enfatiza a necessidade de seus clientes aplicarem as atualizações imediatamente. O pacote de correções não se limita apenas a esses dois sistemas e abrange outros produtos da empresa, com notas de risco que variam em severidade. A demora na aplicação das correções pode deixar as organizações vulneráveis a ataques cada vez mais sofisticados.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://t.ctcdn.com.br/MEPMTu2A_YTdM08Ii-rXtJQy8s0=/1024x576/smart/i439214.jpeg" alt="Ataque Hacker Vaza Dados de Saúde no Brasil">
+  </div>
+  <h3>Ataque Hacker Vaza Dados de Saúde no Brasil</h3>
+  <p>Um ataque de <strong>ransomware</strong> conduzido pelo grupo hacker <strong>Killsec</strong> comprometeu a empresa brasileira de software <strong>MedicSolution</strong>, resultando no vazamento de exames e fotos de pacientes de diversas clínicas. O ataque mirou o provedor de software, afetando indiretamente várias instituições de saúde, como <strong>Vita Exame</strong> e <strong>Laboratório Álvaro</strong>.</p>
+  <p>Segundo a empresa de segurança <strong>Resecurity</strong>, os cibercriminosos obtiveram mais de <strong>34 GB</strong> de dados, incluindo avaliações médicas, <strong>raios-x</strong>, resultados de laboratório, e até fotos e registros de menores de idade. Os dados foram acessados através de falhas de configuração em <strong>data centers</strong> da <strong>Amazon Web Services (AWS)</strong> na nuvem.</p>
+  <p>O grupo <strong>Killsec</strong>, que já havia atacado sistemas governamentais no <strong>Brasil</strong>, agora foca em operações de saúde. A violação da segurança de dados sensíveis, como registros médicos, pode ser usada para extorsão de empresas e pacientes, o que representa uma grave ameaça à privacidade.</p>
+  <p>De acordo com a <strong>Lei Geral de Proteção de Dados (LGPD)</strong>, dados de saúde são classificados como sensíveis e exigem segurança reforçada. As empresas são obrigadas a reportar incidentes de segurança em até três dias úteis. A <strong>Autoridade Nacional de Proteção de Dados (ANPD)</strong> já aplicou multas milionárias a empresas que descumpriram a legislação.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://tm.ibxk.com.br/2025/09/10/10205929489018.jpg?ims=1280x605" alt="Versão Comercial do 'Grande Firewall da China' Estaria Sendo Vendida">
+  </div>
+  <h3>Versão Comercial do "Grande Firewall da China" Estaria Sendo Vendida</h3>
+  <p>Documentos vazados da empresa chinesa <strong>Geedge Networks</strong> sugerem que uma <strong>"versão comercial"</strong> do chamado <strong>Grande Firewall da China</strong> está sendo exportada para outros países. A empresa, que colaborou na implementação do sistema de vigilância chinês, agora comercializa um serviço avançado de monitoramento e censura da internet para governos interessados.</p>
+  <p>O sistema de vigilância é baseado na ferramenta <strong>Tiangou Secure Gateway (TSG)</strong>, capaz de processar o tráfego de internet de um país inteiro. A tecnologia analisa, filtra e bloqueia pacotes de dados. Em conexões não criptografadas, ela pode interceptar informações confidenciais, como senhas e anexos de e-mails. Já em conteúdos protegidos, utiliza <strong>inteligência artificial (IA)</strong> para coletar metadados e identificar tentativas de contornar a censura.</p>
+  <p>A <strong>Geedge Networks</strong> também oferece uma interface de usuário chamada <strong>Cyber Narrator</strong>, que permite rastrear a localização de indivíduos em tempo real e identificar o uso de ferramentas como <strong>VPNs</strong> para escapar da vigilância.</p>
+  <p>Segundo a reportagem, a tecnologia já estaria em uso em países como <strong>Cazaquistão</strong>, <strong>Paquistão</strong>, <strong>Etiópia</strong> e <strong>Mianmar</strong>. Em <strong>Mianmar</strong>, uma captura de tela vazada mostrou o sistema monitorando <strong>81 milhões</strong> de conexões simultaneamente. Especialistas em segurança de dados expressam preocupação, afirmando que o sistema concede às autoridades poderes de vigilância que extrapolam a interceptação legal de dados.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/iStock-2200128716-1920x1080.jpg" alt="IA de Código Aberto Apresenta Riscos de Segurança">
+  </div>
+  <h3>IA de Código Aberto Apresenta Riscos de Segurança</h3>
+  <p>Cientistas da <strong>Universidade da Califórnia</strong>, em <strong>Riverside</strong>, desenvolveram um método para mitigar os riscos de segurança de modelos de <strong>inteligência artificial (IA) de código aberto</strong>, que se tornaram vulneráveis ao serem adaptados para dispositivos de baixa potência, como celulares. A simplificação desses modelos para economizar energia leva à remoção de barreiras de segurança que previnem respostas perigosas.</p>
+  <p>Quando reduzidos em tamanho, os modelos de <strong>IA</strong> de código aberto ignoram camadas de processamento interno para economizar memória e capacidade computacional. Isso os torna suscetíveis a fornecer respostas que contêm discursos de ódio ou instruções para atividades criminosas. Segundo os pesquisadores, o objetivo do novo método é preservar essas camadas essenciais para a segurança, mesmo em sistemas com baixa potência.</p>
+  <p>A solução encontrada é um novo tipo de retreinamento do modelo. Testado no modelo de linguagem e visão <strong>LLaVA 1.5</strong>, o método reverteu a capacidade do sistema de fornecer instruções perigosas. Após o retreinamento, o modelo se recusou a responder perguntas que poderiam ser prejudiciais.</p>
+  <p>Esse método muda a compreensão interna do modelo, fazendo com que ele se comporte de forma segura por padrão, mesmo quando modificado. Os pesquisadores veem isso como uma forma de <strong>"hacking benevolente"</strong>, fortalecendo os sistemas antes que suas vulnerabilidades possam ser exploradas.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/08/inteligencia-artificial-1920x1080.jpg" alt="IA Falha na Moderação de Discurso de Ódio">
+  </div>
+  <h3>IA Falha na Moderação de Discurso de Ódio</h3>
+  <p>Um estudo recente, publicado na <strong>ACL Antology</strong>, revelou que os grandes modelos de linguagem de <strong>inteligência artificial (IA)</strong> utilizados para moderação de conteúdo online são inconsistentes na identificação de discurso de ódio. A análise, conduzida por pesquisadores da <strong>Escola de Comunicação Annenberg</strong>, avaliou sete modelos de <strong>IA</strong> de empresas como <strong>OpenAI</strong> e <strong>Google</strong>.</p>
+  <p>O estudo testou <strong>1,3 milhão de frases sintéticas</strong> para analisar a capacidade dos sistemas em moderar conteúdo prejudicial. Os resultados mostraram que as <strong>IAs</strong> frequentemente tomam decisões divergentes sobre o mesmo conteúdo. Alguns sistemas classificam uma frase como aceitável, enquanto outros a sinalizam como prejudicial.</p>
+  <p>Além disso, a análise destacou a inconsistência interna de alguns modelos, que tratam de forma desigual diferentes grupos sociais. As maiores variações foram notadas em grupos de menor visibilidade, como aqueles baseados em escolaridade ou classe econômica.</p>
+  <p>Os pesquisadores concluíram que a falta de um padrão confiável e a inconsistência na moderação podem causar a percepção de viés e tornar certas comunidades mais vulneráveis online. O estudo reforça que, apesar dos avanços, as <strong>IAs</strong> ainda possuem limitações significativas para regular o discurso de ódio de forma justa e precisa.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2024/06/gpu_comp-1920x1080.jpg" alt="Ataque Cibernético GPUHammer Compromete a Precisão da IA">
+  </div>
+  <h3>Ataque Cibernético GPUHammer Compromete a Precisão da IA</h3>
+  <p>Pesquisadores da <strong>Universidade de Toronto</strong>, no <strong>Canadá</strong>, descobriram uma nova ameaça cibernética que afeta as unidades de processamento gráfico <strong>(GPUs)</strong> e pode comprometer drasticamente a precisão de modelos de <strong>inteligência artificial (IA)</strong> em nuvem. A nova ameaça é uma variação de um ataque já conhecido como <strong>Rowhammer</strong>, adaptada para as <strong>GPUs</strong>.</p>
+  <p>O ataque, batizado de <strong>GPUHammer</strong>, explora um defeito físico nas memórias <strong>GDDR</strong> das placas de vídeo. Ao acessar repetidamente certas áreas da memória, o ataque causa uma interferência elétrica que altera dados próximos. Quando aplicado a modelos de <strong>IA</strong>, os efeitos são devastadores: a precisão das respostas pode cair de <strong>80%</strong> para menos de <strong>0,01%</strong> com a alteração de um único bit.</p>
+  <p>O problema é especialmente crítico para serviços de <strong>aprendizado de máquina em nuvem</strong>, que dependem fortemente de <strong>GPUs</strong>. A descoberta mostra que as vulnerabilidades não se limitam mais apenas ao software, mas também podem ser exploradas no nível do <strong>hardware</strong>. A equipe de pesquisa demonstrou o ataque em uma placa <strong>NVidia RTX A 6000</strong>.</p>
+  <p>Após a descoberta, a <strong>Nvidia</strong> emitiu um alerta de segurança e recomendou que seus clientes ativem o recurso de <strong>Código de Correção de Erros (ECC)</strong>. Embora o recurso possa evitar o ataque, ele também reduz a velocidade de execução das tarefas de <strong>aprendizado de máquina</strong> em até <strong>10%</strong>.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/07/phishing-1920x1080.jpg" alt="Phishing é o Crime Cibernético Mais Comum no Brasil">
+  </div>
+  <h3>Phishing é o Crime Cibernético Mais Comum no Brasil</h3>
+  <p>O <strong>phishing</strong> foi identificado como o crime cibernético mais comum no <strong>Brasil</strong>, de acordo com um levantamento da empresa de segurança <strong>Kaspersky</strong>. Nos últimos <strong>12 meses</strong>, o país registrou <strong>553 milhões</strong> de ataques desse tipo, o que equivale a quase três por habitante.</p>
+  <p>O golpe de <strong>phishing</strong> funciona por meio do envio de links maliciosos via e-mail, <strong>SMS</strong>, <strong>WhatsApp</strong> ou redes sociais. Quando o usuário clica no link, um software malicioso pode infectar o dispositivo e roubar dados sensíveis, incluindo informações financeiras. Em outros casos, a própria vítima é induzida a inserir seus dados em uma página falsa.</p>
+  <p>Em toda a <strong>América Latina</strong>, a <strong>Kaspersky</strong> bloqueou <strong>1,3 bilhão</strong> de tentativas de <strong>phishing</strong> no mesmo período. O <strong>Brasil</strong> se destaca como o principal alvo dos criminosos, devido ao seu tamanho e à importância econômica na região. Especialistas apontam que a baixa educação digital e o desinteresse por ferramentas de segurança cibernética são fatores que contribuem para o sucesso desses ataques.</p>
+  <p>Para se proteger, especialistas recomendam o uso de um bom <strong>software antivírus</strong>, a desconfiança em relação a links suspeitos e a manutenção dos sistemas operacionais e aplicativos sempre atualizados. Além disso, é aconselhável não salvar senhas nos navegadores.</p>
+</article>
+    </section>
+
+    <section id="noticias-variadas" class="news-section">
+      <h2>NOTÍCIAS VARIADAS</h2>
+ <article class="news-article">
+  <div class="article-image">
+    <img src="https://t.ctcdn.com.br/ihQLc_MRyEI-OAdvLhcw9bwMhwY=/1024x576/smart/i1047975.jpeg" alt="Google Afirma que a 'Internet Aberta' Está em Declínio">
+  </div>
+  <h3>Google Afirma que a "Internet Aberta" Está em Declínio</h3>
+  <p>Em um documento judicial recente, o <strong>Google</strong> declarou que a <strong>"internet aberta"</strong> está em <strong>"rápido declínio"</strong>. A declaração, que faz parte de um processo sobre acusações de monopólio no mercado de tecnologia de publicidade, contrasta com as falas públicas de seus próprios executivos.</p>
+  <p>O documento aponta que o desinvestimento proposto pelos autores do processo apenas aceleraria esse declínio, prejudicando os editores que dependem da receita de publicidade na web. A postura do <strong>Google</strong> em tribunal contrasta com discursos públicos recentes. Em meses anteriores, executivos da empresa, incluindo o <strong>CEO Sundar Pichai</strong>, afirmaram que o tráfego e o volume de conteúdo na internet continuavam a prosperar, mesmo com o avanço da <strong>inteligência artificial</strong>.</p>
+  <p>Essa contradição sugere que, enquanto a empresa busca reforçar sua imagem pública de defensora da web aberta, nos bastidores ela reconhece um cenário de fragilidade para o ecossistema da internet.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/AI--1920x1075.jpg" alt="Mercado de Bancos de Dados Aquece com a Demanda da IA">
+  </div>
+  <h3>Mercado de Bancos de Dados Aquece com a Demanda da IA</h3>
+  <p>O mercado de bancos de dados está passando por uma grande transformação, impulsionado pelo crescimento da <strong>inteligência artificial (IA)</strong>. Segundo a empresa de pesquisa <strong>Gartner</strong>, a categoria de <strong>bancos de dados gráficos</strong> e <strong>gráficos de conhecimento</strong> é a que mais cresce no setor. A previsão é de uma expansão anual de <strong>26%</strong> nos próximos cinco anos.</p>
+  <p>Essa tecnologia, que mapeia as relações entre diferentes conjuntos de informações, se tornou crucial para as aplicações de <strong>IA</strong>, oferecendo contexto e profundidade que os bancos de dados tradicionais não conseguem fornecer. Segundo especialistas, isso permite que os sistemas de <strong>IA</strong> compreendam e respondam com mais precisão.</p>
+  <p>Na prática, a tecnologia já é usada para diversas tarefas, incluindo análise em tempo real, detecção de fraudes, operações de varejo e logística. Além disso, ela enriquece os grandes modelos de linguagem, proporcionando respostas mais completas e estruturadas.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/computador-avatar-1920x1080.jpg" alt="Nativos de IA Impulsionam o Mercado de Trabalho">
+  </div>
+  <h3>"Nativos de IA" Impulsionam o Mercado de Trabalho</h3>
+  <p>O mercado de trabalho está passando por uma transformação, com empresas buscando ativamente jovens <strong>"nativos de IA"</strong> — profissionais que cresceram com a <strong>inteligência artificial (IA)</strong> e a utilizam como uma ferramenta central em seu trabalho. Esses jovens estão conquistando altos salários e promoções rápidas, mesmo com pouca experiência formal.</p>
+  <p>Nos <strong>Estados Unidos</strong>, por exemplo, o salário-base para jovens com conhecimentos em <strong>IA</strong> e <strong>aprendizado de máquina</strong> e até três anos de experiência subiu cerca de <strong>12%</strong> em um ano. No <strong>Brasil</strong>, o número de vagas que exigem conhecimento em <strong>IA</strong> quadruplicou entre <strong>2021</strong> e <strong>2024</strong>.</p>
+  <p>O <strong>CEO</strong> da empresa <strong>Databricks</strong> ressaltou que os recém-formados são <strong>"nativos de IA"</strong> e chegam preparados, enquanto os funcionários mais experientes podem apresentar resistência em adotar a tecnologia. Um analista de <strong>IA generativa</strong> com dois anos de experiência na empresa pode ganhar de <strong>US$ 190 mil</strong> a <strong>US$ 260 mil</strong> por ano.</p>
+  <p>Esse mercado, no entanto, não é exclusivo para os <strong>"nativos de IA"</strong>. Outros perfis também se destacam e disputam essas vagas, como jovens pesquisadores que fazem avanços significativos na área e profissionais sem diplomas avançados, mas que dominam as ferramentas de <strong>IA</strong> e aprendem rapidamente.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/iStock-2151984085-1920x1080.jpg" alt="Uso de IA Generativa é Maior no Brasil do que nos EUA">
+  </div>
+  <h3>Uso de IA Generativa é Maior no Brasil do que nos EUA</h3>
+  <p>Um estudo da consultoria <strong>Bain & Company</strong> revelou que o uso de <strong>inteligência artificial (IA) generativa</strong> por consumidores é maior no <strong>Brasil</strong> do que nos <strong>Estados Unidos</strong> e na <strong>Europa</strong>. Enquanto <strong>62%</strong> dos brasileiros declaram utilizar a tecnologia, apenas <strong>35%</strong> dos consumidores nos <strong>EUA</strong> e na <strong>Europa</strong> o fazem.</p>
+  <p>A pesquisa aponta que a principal motivação dos brasileiros é a praticidade. Sessenta e quatro por cento dos entrevistados afirmam que a <strong>IA</strong> facilita tarefas do dia a dia. Além disso, <strong>55%</strong> acreditam que a tecnologia pode gerar novas oportunidades de trabalho, e <strong>49%</strong> consideram que os benefícios superam os riscos. A pesquisa identificou diferentes perfis de usuários, incluindo os <strong>"entusiastas"</strong> que utilizam a <strong>IA</strong> várias vezes por semana e os <strong>"usuários ocasionais"</strong> que a usam para aprender ou se divertir.</p>
+  <p>A pesquisa também abordou os receios dos brasileiros em relação à tecnologia. Entre os que não a utilizam, os principais motivos são a falta de confiança para compartilhar dados pessoais (<strong>47%</strong>), o sentimento de despreparo (<strong>44%</strong>) e o medo de ser substituído por ela (<strong>40%</strong>). No entanto, o estudo sugere que a familiaridade com a <strong>IA</strong> embutida em produtos do cotidiano, como assistentes virtuais e corretores automáticos, pode mudar esse cenário, tornando a tecnologia mais acessível e gerando confiança.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/07/curso-de-inteligncia-artificial-1920x1080.jpg" alt="IA no Estudo: 9 em Cada 10 Jovens Brasileiros Já Usaram a Ferramenta">
+  </div>
+  <h3>IA no Estudo: 9 em Cada 10 Jovens Brasileiros Já Usaram a Ferramenta</h3>
+  <p>Uma pesquisa recente, conduzida pela <strong>Emy Education</strong> com mais de <strong>500 estudantes brasileiros</strong>, revelou que <strong>9 em cada 10</strong> jovens já usaram a <strong>inteligência artificial (IA)</strong> como ferramenta de estudo. O levantamento, que incluiu estudantes do ensino médio e superior das redes pública e privada, demonstra que a tecnologia já é um recurso fundamental na rotina de aprendizado dos jovens.</p>
+  <p>Segundo o estudo, <strong>86,8%</strong> dos entrevistados consideram que a <strong>IA</strong> deve servir como uma ferramenta de apoio e respostas rápidas. Além disso, <strong>90%</strong> dos jovens afirmaram que a <strong>IA</strong> ajudou a reduzir o estresse em períodos intensos de estudo, como em épocas de provas e entrega de projetos.</p>
+  <p>Apesar da popularidade, a pesquisa também apontou alguns receios. Cerca de <strong>60%</strong> dos entrevistados citaram o <strong>"medo de receber respostas erradas ou muito distorcidas"</strong> como um fator que os impede de usar a tecnologia com mais frequência. Outros <strong>35%</strong> expressaram preocupação com a falta de contexto e personalização das respostas. O estudo reforça que os jovens <strong>"nativos digitais"</strong> conseguem integrar a <strong>IA</strong> em seus processos de estudo sem substituir a figura do professor ou outras mídias.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/Destaque-IA-do-Google-no-Brasil-1920x1080.jpg" alt="IA do Google Transforma Setores Essenciais no Brasil">
+  </div>
+  <h3>IA do Google Transforma Setores Essenciais no Brasil</h3>
+  <p>A <strong>inteligência artificial (IA)</strong> do <strong>Google Cloud</strong> está sendo implementada em serviços essenciais no <strong>Brasil</strong>, impactando desde a infraestrutura até serviços públicos. Os primeiros resultados mostram ganhos concretos em eficiência e segurança.</p>
+  <p><strong>Previsões Climáticas para o Setor de Energia</strong></p>
+  <p>A <strong>Eletrobras</strong>, em parceria com o <strong>Google Cloud</strong>, desenvolveu um sistema pioneiro de previsão climática. A solução utiliza o modelo <strong>WeatherNext Graph</strong> da <strong>DeepMind</strong> para simular a atmosfera e prever eventos extremos, como chuvas intensas e ciclones. A ferramenta, que inicialmente será aplicada em dez instalações da <strong>Eletrobras</strong>, já demonstrou ser mais precisa do que os modelos convencionais, ajudando a garantir a confiabilidade no fornecimento de energia.</p>
+  <p><strong>IA Acelera Inspeções em Aeroportos</strong></p>
+  <p>A <strong>Receita Federal</strong> está usando a <strong>IA Gemini</strong> para automatizar a inspeção de bagagens e pacotes internacionais no <strong>Aeroporto de Guarulhos</strong>. Integrada aos equipamentos de raio-x, a tecnologia identifica objetos suspeitos de forma imediata. A automação reduziu o tempo de entrega de compras internacionais de até dois meses para menos de uma semana, beneficiando os consumidores e agilizando a fiscalização.</p>
+  <p><strong>Assistente Jurídico com IA</strong></p>
+  <p>No setor jurídico, o <strong>Jusbrasil</strong> lançou o <strong>Jus IA</strong>, um assistente jurídico baseado no modelo <strong>Gemini</strong>. A ferramenta, que foi desenvolvida para advogados e escritórios, oferece respostas fundamentadas a partir de um vasto acervo de documentos jurídicos. O sistema ajuda na pesquisa, na criação de peças jurídicas e na análise de referências, otimizando o trabalho e auxiliando na elaboração de argumentos mais robustos.</p>
+</article>
+    </section>
+
+    <section id="curiosidades" class="news-section">
+      <h2>CURIOSIDADES</h2>
+   <article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2024/11/inteligencia_artificial-1920x1053.jpg" alt="IA pode Tornar Smartphones Obsoletos">
+  </div>
+  <h3>IA pode Tornar Smartphones Obsoletos</h3>
+  <p>A <strong>inteligência artificial (IA)</strong> pode causar uma revolução tecnológica que tornará os smartphones, como os conhecemos hoje, obsoletos. Grandes empresas de tecnologia acreditam que os assistentes de <strong>IA</strong> estão prestes a se tornar o sistema operacional central de nossos dispositivos pessoais, substituindo a importância do software de smartphone.</p>
+  <p>Nesse cenário, os aplicativos tradicionais poderiam perder relevância, já que a própria <strong>IA</strong> realizaria tarefas de forma automática. O <strong>hardware</strong> dos smartphones também pode ser substituído por novos dispositivos, como óculos inteligentes ou pulseiras, que se conectam diretamente ao usuário e ao ambiente ao redor.</p>
+  <p><strong>Dispositivos do Futuro em Desenvolvimento</strong></p>
+  <p>Empresas de tecnologia já estão trabalhando em protótipos que ilustram esse futuro. A <strong>Meta</strong> está desenvolvendo óculos com telas embutidas, enquanto o <strong>Google</strong> revelou um protótipo semelhante com seu assistente <strong>Gemini</strong>. A empresa <strong>Nothing</strong> explora um dispositivo de <strong>IA</strong> que coleta informações do ambiente para personalizar a experiência do usuário, e a startup <strong>Limitless AI</strong> criou um pingente que grava conversas e as transcreve para um assistente de <strong>IA</strong>.</p>
+  <p>Esses dispositivos futuristas levantam importantes questões sobre privacidade, já que coletam dados do ambiente e do usuário em tempo real. A transição para esse novo paradigma tecnológico dependerá não apenas dos avanços de <strong>hardware</strong> e <strong>software</strong>, mas também do caminho que a sociedade escolherá em relação à proteção de dados e privacidade.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://t.ctcdn.com.br/22KsElRuXLnB7AirDoT03Hhue8k=/1024x576/smart/i1052183.png" alt="5 Profissões em Ascensão na Área da Tecnologia e Saúde">
+  </div>
+  <h3>5 Profissões em Ascensão na Área da Tecnologia e Saúde</h3>
+  <p>O setor de saúde, que movimenta bilhões anualmente, está se transformando com o avanço da tecnologia. O crescimento da <strong>biotecnologia</strong>, da <strong>ciência de dados</strong> e da <strong>inteligência artificial (IA)</strong> está criando uma demanda por <strong>"profissionais híbridos"</strong>, que possuem conhecimentos em múltiplas áreas. Um relatório do <strong>Fórum Econômico Mundial</strong> destaca que o setor de saúde é um dos que mais deve gerar empregos nos próximos anos.</p>
+  <p>Aqui estão 5 profissões em ascensão nesse mercado:</p>
+  <ul>
+    <li><strong>Bioinformata</strong>: Profissional que atua na análise de grandes volumes de dados biológicos. Ele integra conhecimentos de biologia molecular, estatística e programação para trabalhar com sequenciamento genético e no desenvolvimento de vacinas e medicamentos personalizados.</li>
+    <li><strong>Engenheiro Biomédico com Foco em IA</strong>: Especializado no desenvolvimento de tecnologias de diagnóstico que utilizam inteligência artificial. Este profissional projeta dispositivos médicos e sistemas de monitoramento automatizados, como algoritmos para análise de imagens e sistemas de suporte à decisão clínica.</li>
+    <li><strong>Cientista de Dados Clínicos</strong>: Especialista em identificar padrões em dados de saúde, como prontuários eletrônicos e resultados de exames. Seu trabalho envolve o desenvolvimento de modelos preditivos para otimizar tratamentos e recursos hospitalares.</li>
+    <li><strong>Engenheiro de Tecidos de Biomateriais</strong>: Responsável pelo desenvolvimento de materiais biocompatíveis e de tecidos artificiais para a medicina regenerativa. Essa área combina engenharia de materiais, biologia celular e processos de fabricação avançados.</li>
+    <li><strong>Especialista em Plataformas de Saúde Digital</strong>: Profissional que gerencia o desenvolvimento de sistemas de telessaúde, aplicativos de monitoramento remoto e dispositivos vestíveis (wearables). Ele precisa ter conhecimento em design de experiência do usuário, interoperabilidade de dados e regulamentações do setor de saúde digital.</li>
+  </ul>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/09/01-image-olhar-digital-education-1920x1080.jpg" alt="Transformação Digital no Ensino Superior com Novas Tecnologias">
+  </div>
+  <h3>Transformação Digital no Ensino Superior com Novas Tecnologias</h3>
+  <p>O ensino superior está em um ponto de inflexão, com a necessidade de se adaptar ao rápido avanço da tecnologia para preparar os alunos para o futuro. A integração de tecnologias como a <strong>computação em nuvem</strong>, a <strong>Internet das Coisas (IoT)</strong>, o <strong>big data</strong> e a <strong>inteligência artificial (IA)</strong> é vista como um passo fundamental para tornar a educação mais personalizada, adaptável e inclusiva.</p>
+  <p>Para atender a essa demanda, as universidades precisam de uma infraestrutura de rede robusta e flexível. A <strong>Huawei</strong>, por exemplo, oferece a solução <strong>Converged Campus Networks</strong>, que integra diversas redes em uma única plataforma. A tecnologia fornece alta largura de banda e velocidades de até <strong>10 Gbps</strong> em salas de aula para suportar todos os cenários de uso.</p>
+  <p>A abordagem de <strong>rede definida por software (SDN)</strong> e a tecnologia <strong>VXLAN</strong> permitem um gerenciamento refinado da rede, garantindo segurança e simplicidade. Essa integração tecnológica não apenas beneficia os alunos — muitos dos quais já são <strong>nativos digitais</strong> e esperam que a tecnologia seja parte de sua experiência educacional —, mas também cria condições para que professores e pesquisadores estejam sempre atualizados. A transformação digital no ensino superior é um investimento estratégico necessário para a inovação contínua.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://www.estadao.com.br/resizer/v2/KUZBFPMZ4NDWJI77FDE7YGY7Y4.jpeg?quality=80&auth=2208b2f12d7c4c7700265b43432ac0b85b431aca5bc1b54e4617334022feaeb1&width=1200" alt="IA e o Fenômeno da 'Infantilização' de Adultos">
+  </div>
+  <h3>IA e o Fenômeno da "Infantilização" de Adultos</h3>
+  <p>Um especialista em segurança digital, <strong>Demi Getschko</strong>, levanta uma preocupação: enquanto se discute a <strong>"adultização"</strong> de crianças na internet, um fenômeno oposto ocorre entre os adultos. Ele argumenta que, cada vez mais, as pessoas buscam na <strong>inteligência artificial (IA)</strong> uma espécie de tutela, delegando a ela a responsabilidade por suas decisões e angústias.</p>
+  <p>Segundo <strong>Getschko</strong>, embora a <strong>IA</strong> ofereça recursos valiosos, como a simplificação de tarefas, muitos adultos a utilizam como um <strong>"álibi para os erros"</strong>. Ele cita casos de pessoas que tiveram sua saúde ou finanças prejudicadas por seguir conselhos de <strong>IA</strong>, e que culpam a ferramenta por seus próprios fracassos. Essa atitude, que ele chama de <strong>"infantilização"</strong>, enfraquece o senso crítico e a capacidade de assumir responsabilidade.</p>
+  <p>A crítica do especialista se estende à constante busca por proteção e à fragilidade emocional diante de comentários online. Para <strong>Getschko</strong>, consultar conselhos, sejam eles humanos ou digitais, é válido, mas a ausência de um senso crítico ao aceitar essas informações é uma característica infantil. Ele conclui que, assim como é preciso proteger as crianças, os adultos precisam ser responsabilizados por suas próprias escolhas.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://t.ctcdn.com.br/D9yufD83fvY6VY2G0kbcbpahYq8=/1024x576/smart/i1000033.png" alt="Google Detalha Planos e Limites do Gemini">
+  </div>
+  <h3>Google Detalha Planos e Limites do Gemini</h3>
+  <p>O <strong>Google</strong> atualizou a página de suporte do <strong>Gemini</strong> para fornecer mais clareza sobre os limites de uso de seus diferentes planos. A empresa detalhou as diferenças entre o plano gratuito e as versões pagas <strong>Google AI Pro</strong> e <strong>Google AI Ultra</strong>, que podem chegar a custar mais de <strong>R$ 1.200</strong> por mês.</p>
+  <p>A principal diferença entre os planos está no acesso ao modelo mais avançado da empresa, o <strong>Gemini 2.5 Pro</strong>, e na capacidade de processamento de informações (janela de contexto).</p>
+  <p><strong>Aqui estão os limites de uso detalhados:</strong></p>
+  <ul>
+    <li><strong>Acesso ao Gemini 2.5 Pro:</strong> A versão gratuita oferece um acesso básico, enquanto o <strong>AI Pro</strong> permite até <strong>20 vezes</strong> mais uso e o <strong>AI Ultra</strong>, até <strong>100 vezes</strong> mais.</li>
+    <li><strong>Acesso ao Gemini 2.5 Flash:</strong> A versão mais leve e rápida do modelo tem uso ilimitado em todos os planos.</li>
+    <li><strong>Janela de Contexto:</strong> A versão gratuita do <strong>Gemini</strong> permite uma janela de contexto de <strong>32 mil tokens</strong>, enquanto os planos pagos (<strong>Pro</strong> e <strong>Ultra</strong>) aumentam esse limite para <strong>1 milhão de tokens</strong>.</li>
+    <li><strong>Geração de Imagens e Vídeos:</strong> A criação de imagens é básica no plano gratuito e elevada nos planos pagos. A geração de vídeos com o <strong>Veo 3</strong> é exclusiva dos planos pagos, com o <strong>Ultra</strong> oferecendo maior acesso.</li>
+    <li><strong>Pesquisas no Modo Deep Research:</strong> A versão gratuita oferece acesso básico apenas com o <strong>2.5 Flash</strong>. O <strong>AI Pro</strong> e o <strong>AI Ultra</strong> permitem um uso <strong>50</strong> e <strong>500 vezes</strong> maior, respectivamente, com o <strong>2.5 Pro</strong>.</li>
+  </ul>
+  <p>O <strong>Google</strong> informou que, ao atingir o limite de uso de um modelo, a <strong>IA</strong> migra automaticamente para uma versão mais leve para continuar fornecendo respostas. A empresa também está com uma oferta de um ano de acesso gratuito ao plano <strong>AI Pro</strong> para estudantes.</p>
+</article>
+<article class="news-article">
+  <div class="article-image">
+    <img src="https://img.odcdn.com.br/wp-content/uploads/2025/07/esquecer-1-1024x576.jpg" alt="O Fenômeno do 'Jamais Vu': Quando o Familiar se Torna Estranho">
+  </div>
+  <h3>O Fenômeno do "Jamais Vu": Quando o Familiar se Torna Estranho</h3>
+  <p>Enquanto a maioria das pessoas conhece o <strong>"déjà vu"</strong> — a sensação de já ter vivido uma situação inédita —, um fenômeno ainda mais raro e intrigante tem ganhado atenção da ciência: o <strong>"jamais vu"</strong>. Considerado o oposto do déjà vu, ele provoca um sentimento de estranhamento diante de algo que deveria ser absolutamente familiar, como uma palavra, um rosto ou um local conhecido.</p>
+  <p>Pesquisas recentes mostraram que o <strong>"jamais vu"</strong> pode ser induzido em laboratório. Em experimentos, participantes que escreviam repetidamente uma palavra simples relatavam que, após um certo número de repetições, a palavra perdia o sentido ou parecia estranha. Esse fenômeno é explicado pela <strong>saciação</strong>, um processo cerebral no qual a representação mental de algo é sobrecarregada, levando o cérebro a "desligar" a familiaridade.</p>
+  <p>Apesar de ser pouco compreendido, pesquisadores acreditam que o <strong>"jamais vu"</strong> tem um papel importante. A sensação de estranhamento pode funcionar como um <strong>"alerta"</strong> do cérebro, forçando-nos a sair de tarefas repetitivas e a redirecionar nossa atenção. Além disso, o estudo do <strong>"jamais vu"</strong> pode ajudar a entender melhor transtornos como o <strong>Transtorno Obsessivo-Compulsivo (TOC)</strong>, já que a repetição excessiva de checagens pode gerar a mesma sensação de irrealidade, reforçando ciclos compulsivos.</p>
+</article>
+    </section>
+  </main>
+</div>
+
+<!-- Modal de conteúdo -->
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="main-modal-title">
+  <div class="modal-content">
+    <button id="modal-close" class="modal-close" aria-label="Fechar modal de notícias">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Modal de imagem -->
+<div id="imageModal" class="image-modal" role="dialog" aria-modal="true" aria-labelledby="image-modal-label">
+  <span id="image-modal-label" class="visually-hidden">Visualizador de Imagem Ampliada</span>
+  <button id="imageModalClose" class="image-modal-close" aria-label="Fechar imagem ampliada">&times;</button>
+  <img class="image-modal-content" id="expandedImage" alt="Imagem Ampliada">
+</div>
+
+<!-- Container TTS oculto -->
+<div id="tts-content-container" class="visually-hidden" aria-hidden="true"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const menuToggle = document.getElementById('menu-toggle');
+  const menuNav = document.querySelector('nav.menu');
+
+  if(menuToggle && menuNav){
+    menuToggle.addEventListener('click', function(){
+      const isExpanded = this.getAttribute('aria-expanded') === 'true';
+      this.classList.toggle('active');
+      menuNav.classList.toggle('active');
+      this.setAttribute('aria-expanded', !isExpanded);
+    });
+  }
+
+  const menuLinks = document.querySelectorAll('.menu a');
+  const mainModal = document.getElementById('modal');
+  const modalBody = document.getElementById('modal-body');
+  const mainModalCloseButton = document.getElementById('modal-close');
+  const highlightsGrid = document.querySelector('.highlights-grid');
+  const allNewsSections = document.querySelectorAll('section.news-section');
+  const imageModal = document.getElementById('imageModal');
+  const expandedImage = document.getElementById('expandedImage');
+  const imageModalCloseButton = document.getElementById('imageModalClose');
+  let previouslyFocusedElement;
+
+  /* ============================
+     CONTROLE DE TAMANHO DE TEXTO POR ARTIGO (sem números)
+  ============================ */
+  const RESIZER = {
+    STEP: 0.1,       // incremento em rem
+    MIN: 0.85,       // mínimo em rem
+    MAX: 1.8,        // máximo em rem
+    DEFAULT: 1.0,    // padrão em rem
+    KEY_PREFIX: 'articleFontSize:' // chave para localStorage
+  };
+
+  function clamp(val, min, max){ return Math.max(min, Math.min(max, val)); }
+
+  function computeArticleKey(sectionEl, index){
+    const secId = (sectionEl && sectionEl.id) ? sectionEl.id : 'section';
+    return `${RESIZER.KEY_PREFIX}${secId}#${index}`;
+  }
+
+  function injectResizer(articleEl, articleKey){
+    if(!articleEl || articleEl.querySelector('.article-resizer')) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'article-resizer';
+    bar.setAttribute('role', 'group');
+    bar.setAttribute('aria-label', 'Controle do tamanho do texto');
+    bar.dataset.articleKey = articleKey;
+
+    const btnDec = document.createElement('button');
+    btnDec.type = 'button';
+    btnDec.className = 'resizer-btn';
+    btnDec.setAttribute('data-resize-action','dec');
+    btnDec.setAttribute('aria-label','Diminuir tamanho do texto');
+    btnDec.textContent = 'A−';
+
+    const btnInc = document.createElement('button');
+    btnInc.type = 'button';
+    btnInc.className = 'resizer-btn';
+    btnInc.setAttribute('data-resize-action','inc');
+    btnInc.setAttribute('aria-label','Aumentar tamanho do texto');
+    btnInc.textContent = 'A+';
+
+    const btnReset = document.createElement('button');
+    btnReset.type = 'button';
+    btnReset.className = 'resizer-btn';
+    btnReset.setAttribute('data-resize-action','reset');
+    btnReset.setAttribute('aria-label','Restaurar tamanho padrão do texto');
+    btnReset.textContent = 'Reset';
+
+    bar.append(btnDec, btnInc, btnReset);
+    articleEl.prepend(bar);
+  }
+
+  function applyArticleFontSize(articleEl, remVal){
+    if(!articleEl) return;
+    articleEl.style.fontSize = `${remVal}rem`;
+  }
+
+  function setupArticleFontSize(articleEl, articleKey){
+    let saved = null;
+    try { saved = localStorage.getItem(articleKey); } catch(_) {}
+    let sizeRem = RESIZER.DEFAULT;
+    if(saved){
+      const parsed = parseFloat(saved);
+      if(Number.isFinite(parsed)) sizeRem = clamp(parsed, RESIZER.MIN, RESIZER.MAX);
+    }
+    applyArticleFontSize(articleEl, sizeRem);
+    return sizeRem;
+  }
+
+  // Injetar resizer nos artigos presentes nas seções originais
+  allNewsSections.forEach(section=>{
+    const articles = section.querySelectorAll('article.news-article');
+    articles.forEach((article, idx)=>{
+      const key = computeArticleKey(section, idx);
+      setupArticleFontSize(article, key);
+      injectResizer(article, key);
+    });
+  });
+
+  // Delegação global: clique nos botões do resizer (funciona também para clones no modal)
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.article-resizer .resizer-btn');
+    if(!btn) return;
+
+    const bar = btn.closest('.article-resizer');
+    const article = btn.closest('article.news-article');
+    if(!article || !bar) return;
+
+    const action = btn.getAttribute('data-resize-action');
+    const key = bar.dataset.articleKey || '';
+
+    // base = font-size do html (rem)
+    const base = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const currentRem = parseFloat(getComputedStyle(article).fontSize) / base;
+    let next = currentRem;
+
+    if(action === 'inc') next = clamp(currentRem + RESIZER.STEP, RESIZER.MIN, RESIZER.MAX);
+    else if(action === 'dec') next = clamp(currentRem - RESIZER.STEP, RESIZER.MIN, RESIZER.MAX);
+    else if(action === 'reset') next = RESIZER.DEFAULT;
+
+    applyArticleFontSize(article, next);
+    try { if(key) localStorage.setItem(key, String(next)); } catch(_) {}
+  });
+
+  /* ============================
+     MODAIS E ACESSIBILIDADE
+  ============================ */
+  function handleTrapFocusKeydown(e){
+    const modalElement = this;
+    const focusableElements = Array.from(
+      modalElement.querySelectorAll('button,[href],input:not([type="hidden"]),select,textarea,[tabindex]:not([tabindex="-1"])')
+    ).filter(el => el.offsetParent !== null);
+
+    if(focusableElements.length===0 || e.key!=='Tab') return;
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if(e.shiftKey){
+      if(document.activeElement===first){
+        last.focus(); e.preventDefault();
+      }
+    } else {
+      if(document.activeElement===last){
+        first.focus(); e.preventDefault();
+      }
+    }
+  }
+
+  function trapFocusInModal(modalElement){
+    const heading = modalElement.querySelector('.section-title-in-modal');
+    const closeBtn = modalElement.querySelector('.modal-close, .image-modal-close');
+    modalElement.removeEventListener('keydown', handleTrapFocusKeydown);
+    modalElement.addEventListener('keydown', handleTrapFocusKeydown);
+    (heading ?? closeBtn)?.focus();
+  }
+
+  function setBackgroundInert(on){
+    const main = document.querySelector('main');
+    const header = document.querySelector('header');
+    const nav = document.querySelector('nav.menu');
+    [main, header, nav].forEach(el=>{
+      if(!el) return;
+      if(on){ el.setAttribute('inert',''); el.setAttribute('aria-hidden','true'); }
+      else { el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }
+    });
+  }
+
+  function openModal(modalElement){
+    if(!modalElement) return;
+    previouslyFocusedElement = document.activeElement;
+    modalElement.classList.add('modal-open');
+    document.body.classList.add('body-modal-open');
+    setBackgroundInert(true);
+    trapFocusInModal(modalElement);
+  }
+
+  function closeModal(modalElement, onclose){
+    if(!modalElement) return;
+    modalElement.classList.remove('modal-open');
+    modalElement.removeEventListener('keydown', handleTrapFocusKeydown);
+    if(onclose) onclose();
+
+    if(!mainModal.classList.contains('modal-open') && !imageModal.classList.contains('modal-open')){
+      document.body.classList.remove('body-modal-open');
+      setBackgroundInert(false);
+    }
+    if(previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function'){
+      previouslyFocusedElement.focus();
+    }
+  }
+
+  function openImageZoomModal(src, alt){
+    if(!expandedImage) return;
+    expandedImage.src = src;
+    expandedImage.alt = alt || "Imagem Ampliada";
+    openModal(imageModal);
+  }
+
+  function openSectionInModal(targetSelector){
+    const target = document.querySelector(targetSelector);
+    if(!target || !modalBody) return;
+
+    modalBody.innerHTML = "";
+
+    const sectionTitleEl = target.querySelector('h2');
+    const sectionTitleText = sectionTitleEl ? sectionTitleEl.textContent : "Notícias";
+
+    const modalTitle = document.createElement('h2');
+    modalTitle.className = 'section-title-in-modal';
+    modalTitle.id = 'main-modal-title';
+    modalTitle.textContent = sectionTitleText;
+    modalBody.appendChild(modalTitle);
+
+    const accordionContainer = document.createElement('div');
+    accordionContainer.className = 'accordion-container';
+
+    const articles = target.querySelectorAll('article.news-article');
+    const sectionBaseId = target.id || ('s' + Date.now());
+
+    articles.forEach((article, index) => {
+      const articleId = `${sectionBaseId}-article-${index}`;
+      const headerId  = `${articleId}-header`;
+      const contentId = `${articleId}-content`;
+
+      const headerBtn = document.createElement('button');
+      headerBtn.className = 'accordion-header';
+      headerBtn.id = headerId;
+      headerBtn.setAttribute('aria-expanded', 'false');
+      headerBtn.setAttribute('aria-controls', contentId);
+
+      const titleEl = article.querySelector('h3');
+      headerBtn.textContent = titleEl ? titleEl.textContent.trim() : `Artigo ${index+1}`;
+
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'accordion-content';
+      contentDiv.id = contentId;
+      contentDiv.setAttribute('role', 'region');
+      contentDiv.setAttribute('aria-labelledby', headerId);
+      contentDiv.style.display = 'none';
+
+      const clone = article.cloneNode(true);
+
+      // Evitar ids duplicados no clone
+      clone.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+
+      // Garantir foco por teclado na imagem
+      clone.querySelectorAll('.article-image img').forEach(img=>{
+        img.setAttribute('tabindex','0');
+        img.setAttribute('loading','lazy');
+        img.addEventListener('click', e=>{
+          e.stopPropagation();
+          openImageZoomModal(img.src, img.alt);
+        });
+        img.addEventListener('keydown', e=>{
+          if(e.key==='Enter' || e.key===' '){
+            e.preventDefault(); e.stopPropagation();
+            openImageZoomModal(img.src, img.alt);
+          }
+        });
+      });
+
+      // === Resizer também no clone ===
+      const articleKey = `${RESIZER.KEY_PREFIX}${sectionBaseId}#${index}`;
+      setupArticleFontSize(clone, articleKey);
+      const resizerExists = clone.querySelector('.article-resizer');
+      if(resizerExists){
+        resizerExists.dataset.articleKey = articleKey;
+      } else {
+        injectResizer(clone, articleKey);
+      }
+
+      contentDiv.appendChild(clone);
+      accordionContainer.appendChild(headerBtn);
+      accordionContainer.appendChild(contentDiv);
+
+      headerBtn.addEventListener('click', function(){
+        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+
+        accordionContainer.querySelectorAll('.accordion-header').forEach(h=>{
+          if(h !== this){
+            h.classList.remove('active');
+            h.setAttribute('aria-expanded','false');
+            const other = document.getElementById(h.getAttribute('aria-controls'));
+            if(other){ other.style.display='none'; }
+          }
+        });
+
+        this.classList.toggle('active', !isExpanded);
+        this.setAttribute('aria-expanded', !isExpanded);
+        contentDiv.style.display = isExpanded ? 'none' : 'block';
+      });
+    });
+
+    modalBody.appendChild(accordionContainer);
+    openModal(mainModal);
+  }
+
+  /* ============================
+     HIGHLIGHTS & TTS
+  ============================ */
+  function createHighlights(){
+    if(!highlightsGrid) return;
+    highlightsGrid.innerHTML = "";
+    allNewsSections.forEach(section=>{
+      const firstArticle = section.querySelector('article.news-article');
+      if(!firstArticle) return;
+
+      const sectionId = section.id;
+      const sectionTitleText = section.querySelector('h2')?.textContent || "Seção";
+      const articleTitleText = firstArticle.querySelector('h3')?.textContent.trim() || "Clique para ver os artigos";
+
+      const imageEl = firstArticle.querySelector('.article-image img');
+      const imageSrc = imageEl?.src || "https://via.placeholder.com/280x150/555/eee?text=Sem+Imagem";
+      const imageAlt = imageEl?.alt || `Miniatura para ${sectionTitleText}`;
+
+      const card = document.createElement('div'); card.className = 'highlight-item';
+      const title = document.createElement('h3'); title.textContent = sectionTitleText;
+
+      const thumb = document.createElement('img');
+      thumb.src = imageSrc; thumb.alt = imageAlt; thumb.className = 'highlight-thumbnail'; thumb.loading = 'lazy';
+
+      const p = document.createElement('p'); p.className = 'highlight-article-title'; p.textContent = articleTitleText;
+
+      const a = document.createElement('a');
+      a.href = `#${sectionId}`; a.className = 'read-more-link'; a.textContent = 'Ver Seção Completa';
+      a.addEventListener('click', function(e){
+        e.preventDefault();
+        openSectionInModal(this.getAttribute('href'));
+      });
+
+      card.append(title, thumb, p, a);
+      highlightsGrid.appendChild(card);
+    });
+  }
+
+  function populateTtsContent(){
+    const tts = document.getElementById('tts-content-container');
+    if(!tts || !allNewsSections) return;
+
+    allNewsSections.forEach(section=>{
+      const st = section.querySelector('h2');
+      const arts = section.querySelectorAll('article.news-article');
+      if(st) tts.appendChild(st.cloneNode(true));
+      arts.forEach((article,i)=>{
+        tts.appendChild(article.cloneNode(true));
+        if(i < arts.length - 1){
+          const pause = document.createElement('div');
+          pause.className = 'tts-pause-element';
+          tts.appendChild(pause);
+        }
+      });
+    });
+  }
+
+  /* ============================
+     BINDINGS GERAIS
+  ============================ */
+  menuLinks.forEach(link => link.addEventListener('click', function(e){
+    e.preventDefault();
+    const target = this.getAttribute('href');
+    if(target) openSectionInModal(target);
+  }));
+
+  mainModalCloseButton?.addEventListener('click', () => closeModal(mainModal, ()=> modalBody.innerHTML=""));
+  mainModal?.addEventListener('click', e=>{ if(e.target===mainModal) closeModal(mainModal, ()=> modalBody.innerHTML=""); });
+
+  imageModalCloseButton?.addEventListener('click', ()=> closeModal(imageModal, ()=> expandedImage.src=""));
+  imageModal?.addEventListener('click', e=>{ if(e.target===imageModal) closeModal(imageModal, ()=> expandedImage.src=""); });
+
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Escape'){
+      if(imageModal?.classList.contains('modal-open')) closeModal(imageModal, ()=> expandedImage.src="");
+      else if(mainModal?.classList.contains('modal-open')) closeModal(mainModal, ()=> modalBody.innerHTML="");
+    }
+  });
+
+  createHighlights();
+  populateTtsContent();
+});
+</script>
+</body>
+</html>
